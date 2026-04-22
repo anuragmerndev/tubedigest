@@ -1,0 +1,23 @@
+# dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# build outputs
+dist/
+.next/
+out/
+
+# environment files — NEVER commit these
+.env
+.env.local
+.env.production
+.env.*.local
+
+# turbo
+.turbo/
+
+# misc
+.DS_Store
+*.log
+coverage/

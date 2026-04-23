@@ -147,12 +147,8 @@ export class InitialSchema1745400000000 implements MigrationInterface {
     );
 
     // ── RLS policies ─────────────────────────────────────────────────────────
-    await queryRunner.query(
-      `ALTER TABLE "users" ENABLE ROW LEVEL SECURITY`,
-    );
-    await queryRunner.query(
-      `ALTER TABLE "users" FORCE ROW LEVEL SECURITY`,
-    );
+    await queryRunner.query(`ALTER TABLE "users" ENABLE ROW LEVEL SECURITY`);
+    await queryRunner.query(`ALTER TABLE "users" FORCE ROW LEVEL SECURITY`);
     await queryRunner.query(`
       CREATE POLICY "tenant_isolation" ON "users"
         USING (org_id = current_setting('app.org_id')::uuid)
@@ -189,9 +185,7 @@ export class InitialSchema1745400000000 implements MigrationInterface {
     ]) {
       await queryRunner.query(`DROP TABLE IF EXISTS "${table}" CASCADE`);
     }
-    await queryRunner.query(
-      `DROP TYPE IF EXISTS "invitation_status_enum"`,
-    );
+    await queryRunner.query(`DROP TYPE IF EXISTS "invitation_status_enum"`);
     await queryRunner.query(`DROP TYPE IF EXISTS "role_enum"`);
     await queryRunner.query(`DROP TYPE IF EXISTS "plan_enum"`);
     await queryRunner.query(`DROP EXTENSION IF EXISTS "uuid-ossp"`);

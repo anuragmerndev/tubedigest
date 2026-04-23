@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
-import { APP_INTERCEPTOR } from '@nestjs/core';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { AppController } from './app.controller';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -11,6 +12,7 @@ import { MembersModule } from './members/members.module';
 import { SummariesModule } from './summaries/summaries.module';
 import { UsageModule } from './usage/usage.module';
 import { TenantInterceptor } from './common/interceptors/tenant.interceptor';
+import { UserThrottlerGuard } from './common/guards/user-throttler.guard';
 
 @Module({
   controllers: [AppController],
@@ -24,6 +26,9 @@ import { TenantInterceptor } from './common/interceptors/tenant.interceptor';
       useFactory: (configService: ConfigService) =>
         configService.get('database') as object,
     }),
+    ThrottlerModule.forRoot({
+      throttlers: [{ ttl: 60_000, limit: 100 }], // 100 req/min global default
+    }),
     AuthModule,
     OnboardingModule,
     OrgsModule,
@@ -32,6 +37,7 @@ import { TenantInterceptor } from './common/interceptors/tenant.interceptor';
     UsageModule,
   ],
   providers: [
+    { provide: APP_GUARD, useClass: UserThrottlerGuard },
     {
       provide: APP_INTERCEPTOR,
       useClass: TenantInterceptor,

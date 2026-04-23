@@ -1,4 +1,5 @@
 import { TenantInterceptor } from './tenant.interceptor';
+import { Reflector } from '@nestjs/core';
 import { ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { of, throwError } from 'rxjs';
@@ -21,19 +22,49 @@ function makeDataSource(qr: ReturnType<typeof makeQueryRunner>) {
   } as unknown as DataSource;
 }
 
+function makeReflector(isPublic: boolean) {
+  const reflector = new Reflector();
+  jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(isPublic);
+  return reflector;
+}
+
 function makeContext(orgId: string | undefined) {
   const request = {
     clerkPayload: orgId ? { org_id: orgId } : undefined,
   };
   return {
+    getHandler: jest.fn(),
+    getClass: jest.fn(),
     switchToHttp: () => ({ getRequest: () => request }),
   } as unknown as ExecutionContext;
 }
 
 describe('TenantInterceptor', () => {
-  it('throws 401 when clerkPayload is missing', async () => {
+  it('skips RLS and passes through on public routes', async () => {
     const qr = makeQueryRunner();
-    const interceptor = new TenantInterceptor(makeDataSource(qr));
+    const interceptor = new TenantInterceptor(
+      makeReflector(true),
+      makeDataSource(qr),
+    );
+    const ctx = makeContext(undefined);
+    const next = { handle: jest.fn().mockReturnValue(of('public-result')) };
+
+    const result = await new Promise((resolve, reject) => {
+      interceptor
+        .intercept(ctx, next)
+        .subscribe({ next: resolve, error: reject });
+    });
+
+    expect(result).toBe('public-result');
+    expect(qr.connect).not.toHaveBeenCalled();
+  });
+
+  it('throws 401 when clerkPayload is missing on protected route', async () => {
+    const qr = makeQueryRunner();
+    const interceptor = new TenantInterceptor(
+      makeReflector(false),
+      makeDataSource(qr),
+    );
     const ctx = makeContext(undefined);
     const next = { handle: jest.fn().mockReturnValue(of(null)) };
 
@@ -48,9 +79,16 @@ describe('TenantInterceptor', () => {
 
   it('throws 401 when org_id is missing from payload', async () => {
     const qr = makeQueryRunner();
-    const interceptor = new TenantInterceptor(makeDataSource(qr));
-    const request = { clerkPayload: { sub: 'user_123' } };
+    const interceptor = new TenantInterceptor(
+      makeReflector(false),
+      makeDataSource(qr),
+    );
+    const request = {
+      clerkPayload: { sub: 'user_123' },
+    };
     const ctx = {
+      getHandler: jest.fn(),
+      getClass: jest.fn(),
       switchToHttp: () => ({ getRequest: () => request }),
     } as unknown as ExecutionContext;
     const next = { handle: jest.fn().mockReturnValue(of(null)) };
@@ -66,7 +104,10 @@ describe('TenantInterceptor', () => {
 
   it('sets app.org_id and commits on success', async () => {
     const qr = makeQueryRunner();
-    const interceptor = new TenantInterceptor(makeDataSource(qr));
+    const interceptor = new TenantInterceptor(
+      makeReflector(false),
+      makeDataSource(qr),
+    );
     const ctx = makeContext('org_abc');
     const next = { handle: jest.fn().mockReturnValue(of('result')) };
 
@@ -88,7 +129,10 @@ describe('TenantInterceptor', () => {
 
   it('rollbacks and releases on handler error', async () => {
     const qr = makeQueryRunner();
-    const interceptor = new TenantInterceptor(makeDataSource(qr));
+    const interceptor = new TenantInterceptor(
+      makeReflector(false),
+      makeDataSource(qr),
+    );
     const ctx = makeContext('org_abc');
     const next = {
       handle: jest.fn().mockReturnValue(throwError(() => new Error('boom'))),

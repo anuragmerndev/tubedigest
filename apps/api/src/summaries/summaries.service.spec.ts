@@ -4,6 +4,7 @@ import { Video } from './video.entity';
 import { UserSummary } from './user-summary.entity';
 import { User } from '../users/user.entity';
 import { UnprocessableEntityException } from '@nestjs/common';
+import { UsageService } from '../usage/usage.service';
 
 const mockFetchTranscript = jest.fn();
 const mockOpenAICreate = jest.fn();
@@ -44,10 +45,17 @@ function makeRepo<T extends object>() {
 
 const user = { id: 'u1', clerkId: 'clerk_abc', orgId: 'org1' } as User;
 
+const mockUsageService = {
+  checkAndIncrement: jest.fn().mockResolvedValue(undefined),
+} as unknown as UsageService;
+
 describe('SummariesService', () => {
   beforeEach(() => {
     mockFetchTranscript.mockReset();
     mockOpenAICreate.mockReset();
+    (mockUsageService.checkAndIncrement as jest.Mock).mockResolvedValue(
+      undefined,
+    );
   });
 
   it('throws 422 when YouTube URL is invalid', async () => {
@@ -60,6 +68,7 @@ describe('SummariesService', () => {
       videoRepo.repo,
       summaryRepo.repo,
       userRepo.repo,
+      mockUsageService,
     );
     await expect(
       service.submitSummary('clerk_abc', 'https://notyoutube.com/watch?v=abc'),
@@ -92,6 +101,7 @@ describe('SummariesService', () => {
       videoRepo.repo,
       summaryRepo.repo,
       userRepo.repo,
+      mockUsageService,
     );
     const result = await service.submitSummary(
       'clerk_abc',
@@ -141,6 +151,7 @@ describe('SummariesService', () => {
       videoRepo.repo,
       summaryRepo.repo,
       userRepo.repo,
+      mockUsageService,
     );
     const result = await service.submitSummary(
       'clerk_abc',
@@ -173,6 +184,7 @@ describe('SummariesService', () => {
       videoRepo.repo,
       summaryRepo.repo,
       userRepo.repo,
+      mockUsageService,
     );
     await expect(
       service.submitSummary('clerk_abc', 'https://youtube.com/watch?v=abc123'),

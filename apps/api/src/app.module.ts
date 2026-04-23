@@ -9,6 +9,7 @@ import { OnboardingModule } from './onboarding/onboarding.module';
 import { OrgsModule } from './orgs/orgs.module';
 import { MembersModule } from './members/members.module';
 import { SummariesModule } from './summaries/summaries.module';
+import { UsageModule } from './usage/usage.module';
 import { TenantInterceptor } from './common/interceptors/tenant.interceptor';
 
 @Module({
@@ -28,6 +29,7 @@ import { TenantInterceptor } from './common/interceptors/tenant.interceptor';
     OrgsModule,
     MembersModule,
     SummariesModule,
+    UsageModule,
   ],
   providers: [
     {

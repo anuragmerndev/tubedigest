@@ -15,6 +15,7 @@ import OpenAI from 'openai';
 import { Video } from './video.entity';
 import { UserSummary } from './user-summary.entity';
 import { User } from '../users/user.entity';
+import { UsageService } from '../usage/usage.service';
 
 const MAX_CHARS = 16000; // ~4000 tokens
 
@@ -37,6 +38,7 @@ export class SummariesService {
     private readonly userSummaryRepo: Repository<UserSummary>,
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
+    private readonly usageService: UsageService,
   ) {}
 
   private extractVideoId(url: string): string {
@@ -68,6 +70,9 @@ export class SummariesService {
       throw new NotFoundException('User or organisation not found');
 
     const videoId = this.extractVideoId(url);
+
+    // Enforce monthly limit before doing any work
+    await this.usageService.checkAndIncrement(user.orgId);
 
     // Cache hit
     const existing = await this.videoRepo.findOne({

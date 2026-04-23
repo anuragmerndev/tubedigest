@@ -6,6 +6,7 @@ import {
   Post,
   Req,
 } from '@nestjs/common';
+import { ApiBearerAuth } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { SyncUserDto } from './dto/sync-user.dto';
 import { SkipTenant } from './skip-tenant.decorator';
@@ -14,6 +15,7 @@ interface ClerkRequest {
   clerkPayload: { sub: string };
 }
 
+@ApiBearerAuth()
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}

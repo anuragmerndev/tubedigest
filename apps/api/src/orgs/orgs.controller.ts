@@ -1,4 +1,5 @@
 import { Body, Controller, Get, Patch, Req, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth } from '@nestjs/swagger';
 import { OrgsService } from './orgs.service';
 import { UpdateOrgDto } from './dto/update-org.dto';
 import { RolesGuard } from '../auth/roles.guard';
@@ -9,6 +10,7 @@ interface ClerkRequest {
   clerkPayload: { sub: string };
 }
 
+@ApiBearerAuth()
 @Controller('orgs')
 export class OrgsController {
   constructor(private readonly orgsService: OrgsService) {}

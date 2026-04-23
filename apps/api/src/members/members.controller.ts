@@ -10,6 +10,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
+import { ApiBearerAuth } from '@nestjs/swagger';
 import { MembersService } from './members.service';
 import { InviteMemberDto } from './dto/invite-member.dto';
 import { RolesGuard } from '../auth/roles.guard';
@@ -20,6 +21,7 @@ interface ClerkRequest {
   clerkPayload: { sub: string };
 }
 
+@ApiBearerAuth()
 @Controller()
 export class MembersController {
   constructor(private readonly membersService: MembersService) {}

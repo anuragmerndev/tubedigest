@@ -15,7 +15,6 @@ import { SKIP_TENANT_KEY } from '../../auth/skip-tenant.decorator';
 
 interface ClerkPayload {
   sub?: string;
-  org_id?: string;
   [key: string]: unknown;
 }
 
@@ -46,17 +45,10 @@ export class TenantInterceptor implements NestInterceptor {
       .switchToHttp()
       .getRequest<{ clerkPayload?: ClerkPayload }>();
 
-    const payload = request.clerkPayload;
-    if (!payload) {
+    const clerkId = request.clerkPayload?.sub;
+    if (!clerkId) {
       return throwError(
         () => new UnauthorizedException('Missing auth payload'),
-      );
-    }
-
-    const orgId = payload.org_id;
-    if (!orgId) {
-      return throwError(
-        () => new UnauthorizedException('Missing org_id in token'),
       );
     }
 
@@ -64,6 +56,15 @@ export class TenantInterceptor implements NestInterceptor {
 
     return from(
       (async () => {
+        // Resolve org_id from local DB using the Clerk user id
+        const rows = await this.dataSource.query<{ org_id: string | null }[]>(
+          `SELECT org_id FROM users WHERE clerk_id = $1 LIMIT 1`,
+          [clerkId],
+        );
+        const orgId = rows[0]?.org_id ?? null;
+        if (!orgId) {
+          throw new UnauthorizedException('User has no organisation');
+        }
         await qr.connect();
         await qr.startTransaction();
         await qr.query(`SELECT set_config('app.org_id', $1, true)`, [orgId]);

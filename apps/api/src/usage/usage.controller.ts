@@ -1,3 +1,4 @@
+import { ApiBearerAuth } from '@nestjs/swagger';
 import { Controller, Get, Req } from '@nestjs/common';
 import { UsageService } from './usage.service';
 
@@ -5,6 +6,7 @@ interface ClerkRequest {
   clerkPayload: { sub: string };
 }
 
+@ApiBearerAuth()
 @Controller('usage')
 export class UsageController {
   constructor(private readonly usageService: UsageService) {}

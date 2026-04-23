@@ -9,6 +9,7 @@ import {
   Query,
   Req,
 } from '@nestjs/common';
+import { ApiBearerAuth } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { SummariesService } from './summaries.service';
 import { SubmitSummaryDto } from './dto/submit-summary.dto';
@@ -17,6 +18,7 @@ interface ClerkRequest {
   clerkPayload: { sub: string };
 }
 
+@ApiBearerAuth()
 @Controller('summaries')
 export class SummariesController {
   constructor(private readonly summariesService: SummariesService) {}

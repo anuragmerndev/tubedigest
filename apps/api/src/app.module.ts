@@ -13,6 +13,7 @@ import { MembersModule } from './members/members.module';
 import { SummariesModule } from './summaries/summaries.module';
 import { UsageModule } from './usage/usage.module';
 import { TenantInterceptor } from './common/interceptors/tenant.interceptor';
+import { TransformInterceptor } from './common/interceptors/transform.interceptor';
 import { UserThrottlerGuard } from './common/guards/user-throttler.guard';
 import { RequestLoggerMiddleware } from './common/middleware/request-logger.middleware';
 import { winstonConfig } from './config/logger.config';
@@ -45,6 +46,10 @@ import { winstonConfig } from './config/logger.config';
     {
       provide: APP_INTERCEPTOR,
       useClass: TenantInterceptor,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: TransformInterceptor,
     },
   ],
 })

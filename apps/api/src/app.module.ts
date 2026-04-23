@@ -7,6 +7,7 @@ import databaseConfig from './config/database.config';
 import { AuthModule } from './auth/auth.module';
 import { OnboardingModule } from './onboarding/onboarding.module';
 import { OrgsModule } from './orgs/orgs.module';
+import { MembersModule } from './members/members.module';
 import { TenantInterceptor } from './common/interceptors/tenant.interceptor';
 
 @Module({
@@ -24,6 +25,7 @@ import { TenantInterceptor } from './common/interceptors/tenant.interceptor';
     AuthModule,
     OnboardingModule,
     OrgsModule,
+    MembersModule,
   ],
   providers: [
     {

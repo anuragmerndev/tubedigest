@@ -1,6 +1,7 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { WinstonModule } from 'nest-winston';
 import { AppController } from './app.controller';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -13,6 +14,8 @@ import { SummariesModule } from './summaries/summaries.module';
 import { UsageModule } from './usage/usage.module';
 import { TenantInterceptor } from './common/interceptors/tenant.interceptor';
 import { UserThrottlerGuard } from './common/guards/user-throttler.guard';
+import { RequestLoggerMiddleware } from './common/middleware/request-logger.middleware';
+import { winstonConfig } from './config/logger.config';
 
 @Module({
   controllers: [AppController],
@@ -29,6 +32,7 @@ import { UserThrottlerGuard } from './common/guards/user-throttler.guard';
     ThrottlerModule.forRoot({
       throttlers: [{ ttl: 60_000, limit: 100 }], // 100 req/min global default
     }),
+    WinstonModule.forRoot(winstonConfig),
     AuthModule,
     OnboardingModule,
     OrgsModule,
@@ -44,4 +48,8 @@ import { UserThrottlerGuard } from './common/guards/user-throttler.guard';
     },
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer): void {
+    consumer.apply(RequestLoggerMiddleware).forRoutes('*');
+  }
+}

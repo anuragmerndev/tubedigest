@@ -1,10 +1,14 @@
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
+import { LoggerService, ValidationPipe } from '@nestjs/common';
 import helmet from 'helmet';
+import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    bufferLogs: true,
+  });
+  app.useLogger(app.get(WINSTON_MODULE_NEST_PROVIDER));
 
   app.use(helmet());
 
@@ -24,6 +28,7 @@ async function bootstrap() {
 
   const port = process.env.PORT ?? 3001;
   await app.listen(port);
-  console.log(`API running on http://localhost:${port}/api`);
+  const logger = app.get<LoggerService>(WINSTON_MODULE_NEST_PROVIDER);
+  logger.log(`API running on http://localhost:${port}/api`, 'Bootstrap');
 }
 void bootstrap();

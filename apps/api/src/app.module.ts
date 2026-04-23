@@ -5,6 +5,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import databaseConfig from './config/database.config';
 import { AuthModule } from './auth/auth.module';
+import { OnboardingModule } from './onboarding/onboarding.module';
 import { TenantInterceptor } from './common/interceptors/tenant.interceptor';
 
 @Module({
@@ -20,6 +21,7 @@ import { TenantInterceptor } from './common/interceptors/tenant.interceptor';
         configService.get('database') as object,
     }),
     AuthModule,
+    OnboardingModule,
   ],
   providers: [
     {

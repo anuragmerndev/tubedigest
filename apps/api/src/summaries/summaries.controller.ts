@@ -9,6 +9,7 @@ import {
   Query,
   Req,
 } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { SummariesService } from './summaries.service';
 import { SubmitSummaryDto } from './dto/submit-summary.dto';
 
@@ -22,6 +23,7 @@ export class SummariesController {
 
   @Post()
   @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { ttl: 60_000, limit: 10 } }) // 10 req/min per user
   submitSummary(@Req() req: ClerkRequest, @Body() dto: SubmitSummaryDto) {
     return this.summariesService.submitSummary(req.clerkPayload.sub, dto.url);
   }

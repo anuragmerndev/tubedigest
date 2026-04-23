@@ -5,10 +5,12 @@ import {
   NestInterceptor,
   UnauthorizedException,
 } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { Observable, from, throwError } from 'rxjs';
 import { catchError, switchMap } from 'rxjs/operators';
 import { DataSource } from 'typeorm';
+import { IS_PUBLIC_KEY } from '../../auth/public.decorator';
 
 interface ClerkPayload {
   sub?: string;
@@ -19,11 +21,21 @@ interface ClerkPayload {
 @Injectable()
 export class TenantInterceptor implements NestInterceptor {
   constructor(
+    private readonly reflector: Reflector,
     @InjectDataSource()
     private readonly dataSource: DataSource,
   ) {}
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
+    const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
+
+    if (isPublic) {
+      return next.handle();
+    }
+
     const request = context
       .switchToHttp()
       .getRequest<{ clerkPayload?: ClerkPayload }>();

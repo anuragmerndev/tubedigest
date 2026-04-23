@@ -19,7 +19,8 @@ export class MembersService {
 
   private async resolveUser(clerkId: string): Promise<User> {
     const user = await this.userRepo.findOne({ where: { clerkId } });
-    if (!user?.orgId) throw new NotFoundException('No organisation found for this user');
+    if (!user?.orgId)
+      throw new NotFoundException('No organisation found for this user');
     return user;
   }
 
@@ -31,15 +32,23 @@ export class MembersService {
   async removeMember(clerkId: string, memberId: string): Promise<void> {
     const user = await this.resolveUser(clerkId);
     if (user.id === memberId) {
-      throw new ForbiddenException('Cannot remove yourself from the organisation');
+      throw new ForbiddenException(
+        'Cannot remove yourself from the organisation',
+      );
     }
-    const target = await this.userRepo.findOne({ where: { id: memberId, orgId: user.orgId! } });
+    const target = await this.userRepo.findOne({
+      where: { id: memberId, orgId: user.orgId! },
+    });
     if (!target) throw new NotFoundException('Member not found');
     target.orgId = null;
     await this.userRepo.save(target);
   }
 
-  async inviteMember(clerkId: string, email: string, role: UserRole): Promise<Invitation> {
+  async inviteMember(
+    clerkId: string,
+    email: string,
+    role: UserRole,
+  ): Promise<Invitation> {
     const user = await this.resolveUser(clerkId);
     const invitation = this.invitationRepo.create({
       orgId: user.orgId!,

@@ -55,7 +55,9 @@ describe('TenantInterceptor', () => {
     const next = { handle: jest.fn().mockReturnValue(of('result')) };
 
     const result = await new Promise((resolve, reject) => {
-      interceptor.intercept(makeContext(undefined), next).subscribe({ next: resolve, error: reject });
+      interceptor
+        .intercept(makeContext(undefined), next)
+        .subscribe({ next: resolve, error: reject });
     });
 
     expect(result).toBe('result');
@@ -71,7 +73,9 @@ describe('TenantInterceptor', () => {
     const next = { handle: jest.fn().mockReturnValue(of('result')) };
 
     const result = await new Promise((resolve, reject) => {
-      interceptor.intercept(makeContext(undefined), next).subscribe({ next: resolve, error: reject });
+      interceptor
+        .intercept(makeContext(undefined), next)
+        .subscribe({ next: resolve, error: reject });
     });
 
     expect(result).toBe('result');
@@ -88,7 +92,9 @@ describe('TenantInterceptor', () => {
 
     await expect(
       new Promise((resolve, reject) => {
-        interceptor.intercept(makeContext(undefined), next).subscribe({ next: resolve, error: reject });
+        interceptor
+          .intercept(makeContext(undefined), next)
+          .subscribe({ next: resolve, error: reject });
       }),
     ).rejects.toThrow(UnauthorizedException);
   });
@@ -109,7 +115,9 @@ describe('TenantInterceptor', () => {
 
     await expect(
       new Promise((resolve, reject) => {
-        interceptor.intercept(ctx, next).subscribe({ next: resolve, error: reject });
+        interceptor
+          .intercept(ctx, next)
+          .subscribe({ next: resolve, error: reject });
       }),
     ).rejects.toThrow(UnauthorizedException);
   });
@@ -123,7 +131,9 @@ describe('TenantInterceptor', () => {
     const next = { handle: jest.fn().mockReturnValue(of('result')) };
 
     await new Promise((resolve, reject) => {
-      interceptor.intercept(makeContext('org_abc'), next).subscribe({ next: resolve, error: reject });
+      interceptor
+        .intercept(makeContext('org_abc'), next)
+        .subscribe({ next: resolve, error: reject });
     });
 
     expect(qr.connect).toHaveBeenCalled();
@@ -148,7 +158,9 @@ describe('TenantInterceptor', () => {
 
     await expect(
       new Promise((resolve, reject) => {
-        interceptor.intercept(makeContext('org_abc'), next).subscribe({ next: resolve, error: reject });
+        interceptor
+          .intercept(makeContext('org_abc'), next)
+          .subscribe({ next: resolve, error: reject });
       }),
     ).rejects.toThrow('boom');
 

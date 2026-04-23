@@ -34,7 +34,10 @@ export class OrgsService {
 
     if (data.name) {
       org.name = data.name;
-      org.slug = data.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+      org.slug = data.name
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, '');
     }
 
     return this.orgRepo.save(org);

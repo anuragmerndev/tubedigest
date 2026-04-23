@@ -37,17 +37,24 @@ describe('OrgsService', () => {
   it('throws NotFoundException when user has no org', async () => {
     const orgRepo = makeOrgRepo();
     const userRepo = makeUserRepo();
-    userRepo.findOne.mockResolvedValue({ id: 'u1', orgId: null } as User);
+    userRepo.findOne.mockResolvedValue({ id: 'u1', orgId: null });
 
     const service = new OrgsService(orgRepo.repo, userRepo.repo);
-    await expect(service.getCurrentOrg('clerk_abc')).rejects.toThrow(NotFoundException);
+    await expect(service.getCurrentOrg('clerk_abc')).rejects.toThrow(
+      NotFoundException,
+    );
   });
 
   it('updates org name and slug', async () => {
     const orgRepo = makeOrgRepo();
     const userRepo = makeUserRepo();
     const user = { id: 'u1', clerkId: 'clerk_abc', orgId: 'org1' } as User;
-    const org = { id: 'org1', name: 'Old', slug: 'old', plan: 'free' } as Organization;
+    const org = {
+      id: 'org1',
+      name: 'Old',
+      slug: 'old',
+      plan: 'free',
+    } as Organization;
     const updated = { ...org, name: 'New Name', slug: 'new-name' };
 
     userRepo.findOne.mockResolvedValue(user);
@@ -57,7 +64,11 @@ describe('OrgsService', () => {
     const service = new OrgsService(orgRepo.repo, userRepo.repo);
     const result = await service.updateOrg('clerk_abc', { name: 'New Name' });
 
-    expect(orgRepo.save).toHaveBeenCalledWith({ ...org, name: 'New Name', slug: 'new-name' });
+    expect(orgRepo.save).toHaveBeenCalledWith({
+      ...org,
+      name: 'New Name',
+      slug: 'new-name',
+    });
     expect(result).toEqual(updated);
   });
 });

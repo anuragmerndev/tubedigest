@@ -42,7 +42,11 @@ export class MembersController {
   @Roles(UserRole.OWNER)
   @HttpCode(HttpStatus.CREATED)
   inviteMember(@Req() req: ClerkRequest, @Body() dto: InviteMemberDto) {
-    return this.membersService.inviteMember(req.clerkPayload.sub, dto.email, dto.role);
+    return this.membersService.inviteMember(
+      req.clerkPayload.sub,
+      dto.email,
+      dto.role,
+    );
   }
 
   @Get('invitations')

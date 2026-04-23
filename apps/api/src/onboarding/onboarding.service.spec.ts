@@ -26,7 +26,9 @@ describe('OnboardingService', () => {
     userRepo.findOne.mockResolvedValue(null);
 
     const service = new OnboardingService(orgRepo.repo, userRepo.repo);
-    await expect(service.createOrg('clerk_abc', 'Acme')).rejects.toThrow(NotFoundException);
+    await expect(service.createOrg('clerk_abc', 'Acme')).rejects.toThrow(
+      NotFoundException,
+    );
   });
 
   it('throws ConflictException when slug already exists', async () => {
@@ -37,26 +39,41 @@ describe('OnboardingService', () => {
     orgRepo.findOne.mockResolvedValue({ id: 'existing-org' });
 
     const service = new OnboardingService(orgRepo.repo, userRepo.repo);
-    await expect(service.createOrg('clerk_abc', 'Acme')).rejects.toThrow(ConflictException);
+    await expect(service.createOrg('clerk_abc', 'Acme')).rejects.toThrow(
+      ConflictException,
+    );
   });
 
   it('creates org, sets user role to owner and orgId', async () => {
     const orgRepo = makeOrgRepo();
     const userRepo = makeUserRepo();
-    const user = { id: 'u1', clerkId: 'clerk_abc', orgId: null, role: UserRole.MEMBER } as User;
+    const user = {
+      id: 'u1',
+      clerkId: 'clerk_abc',
+      orgId: null,
+      role: UserRole.MEMBER,
+    } as User;
     const org = { id: 'org1', name: 'Acme', slug: 'acme' };
 
     userRepo.findOne.mockResolvedValue(user);
     orgRepo.findOne.mockResolvedValue(null);
     orgRepo.create.mockReturnValue(org);
     orgRepo.save.mockResolvedValue(org);
-    userRepo.save.mockResolvedValue({ ...user, orgId: 'org1', role: UserRole.OWNER });
+    userRepo.save.mockResolvedValue({
+      ...user,
+      orgId: 'org1',
+      role: UserRole.OWNER,
+    });
 
     const service = new OnboardingService(orgRepo.repo, userRepo.repo);
     const result = await service.createOrg('clerk_abc', 'Acme');
 
     expect(orgRepo.create).toHaveBeenCalledWith({ name: 'Acme', slug: 'acme' });
-    expect(userRepo.save).toHaveBeenCalledWith({ ...user, orgId: 'org1', role: UserRole.OWNER });
+    expect(userRepo.save).toHaveBeenCalledWith({
+      ...user,
+      orgId: 'org1',
+      role: UserRole.OWNER,
+    });
     expect(result.org).toEqual(org);
   });
 });

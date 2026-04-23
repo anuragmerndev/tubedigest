@@ -26,7 +26,10 @@ export class OnboardingService {
       throw new NotFoundException('User not found — call /auth/sync first');
     }
 
-    const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    const slug = name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '');
 
     const existing = await this.orgRepo.findOne({ where: { slug } });
     if (existing) {

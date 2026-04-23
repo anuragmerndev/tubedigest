@@ -17,12 +17,27 @@ function makeInvitationRepo() {
   const findOne = jest.fn();
   const create = jest.fn();
   const save = jest.fn();
-  const repo = { find, findOne, create, save } as unknown as Repository<Invitation>;
+  const repo = {
+    find,
+    findOne,
+    create,
+    save,
+  } as unknown as Repository<Invitation>;
   return { repo, find, findOne, create, save };
 }
 
-const owner = { id: 'u1', clerkId: 'clerk_owner', orgId: 'org1', role: UserRole.OWNER } as User;
-const member = { id: 'u2', clerkId: 'clerk_member', orgId: 'org1', role: UserRole.MEMBER } as User;
+const owner = {
+  id: 'u1',
+  clerkId: 'clerk_owner',
+  orgId: 'org1',
+  role: UserRole.OWNER,
+} as User;
+const member = {
+  id: 'u2',
+  clerkId: 'clerk_member',
+  orgId: 'org1',
+  role: UserRole.MEMBER,
+} as User;
 
 describe('MembersService', () => {
   describe('listMembers', () => {
@@ -42,10 +57,12 @@ describe('MembersService', () => {
     it('throws NotFoundException when user has no org', async () => {
       const userRepo = makeUserRepo();
       const invRepo = makeInvitationRepo();
-      userRepo.findOne.mockResolvedValue({ id: 'u1', orgId: null } as User);
+      userRepo.findOne.mockResolvedValue({ id: 'u1', orgId: null });
 
       const service = new MembersService(userRepo.repo, invRepo.repo);
-      await expect(service.listMembers('clerk_owner')).rejects.toThrow(NotFoundException);
+      await expect(service.listMembers('clerk_owner')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -56,7 +73,9 @@ describe('MembersService', () => {
       userRepo.findOne.mockResolvedValue(owner);
 
       const service = new MembersService(userRepo.repo, invRepo.repo);
-      await expect(service.removeMember('clerk_owner', 'u1')).rejects.toThrow(ForbiddenException);
+      await expect(service.removeMember('clerk_owner', 'u1')).rejects.toThrow(
+        ForbiddenException,
+      );
     });
 
     it('removes a member by setting orgId to null', async () => {
@@ -78,14 +97,23 @@ describe('MembersService', () => {
     it('creates a pending invitation', async () => {
       const userRepo = makeUserRepo();
       const invRepo = makeInvitationRepo();
-      const inv = { id: 'inv1', orgId: 'org1', email: 'new@b.com', status: InvitationStatus.PENDING };
+      const inv = {
+        id: 'inv1',
+        orgId: 'org1',
+        email: 'new@b.com',
+        status: InvitationStatus.PENDING,
+      };
 
       userRepo.findOne.mockResolvedValue(owner);
       invRepo.create.mockReturnValue(inv);
       invRepo.save.mockResolvedValue(inv);
 
       const service = new MembersService(userRepo.repo, invRepo.repo);
-      const result = await service.inviteMember('clerk_owner', 'new@b.com', UserRole.MEMBER);
+      const result = await service.inviteMember(
+        'clerk_owner',
+        'new@b.com',
+        UserRole.MEMBER,
+      );
 
       expect(invRepo.create).toHaveBeenCalledWith({
         orgId: 'org1',
@@ -99,7 +127,11 @@ describe('MembersService', () => {
     it('lists pending invitations for the org', async () => {
       const userRepo = makeUserRepo();
       const invRepo = makeInvitationRepo();
-      const inv = { id: 'inv1', orgId: 'org1', status: InvitationStatus.PENDING };
+      const inv = {
+        id: 'inv1',
+        orgId: 'org1',
+        status: InvitationStatus.PENDING,
+      };
 
       userRepo.findOne.mockResolvedValue(owner);
       invRepo.find.mockResolvedValue([inv]);
@@ -117,16 +149,26 @@ describe('MembersService', () => {
     it('cancels an invitation', async () => {
       const userRepo = makeUserRepo();
       const invRepo = makeInvitationRepo();
-      const inv = { id: 'inv1', orgId: 'org1', status: InvitationStatus.PENDING } as Invitation;
+      const inv = {
+        id: 'inv1',
+        orgId: 'org1',
+        status: InvitationStatus.PENDING,
+      } as Invitation;
 
       userRepo.findOne.mockResolvedValue(owner);
       invRepo.findOne.mockResolvedValue(inv);
-      invRepo.save.mockResolvedValue({ ...inv, status: InvitationStatus.CANCELLED });
+      invRepo.save.mockResolvedValue({
+        ...inv,
+        status: InvitationStatus.CANCELLED,
+      });
 
       const service = new MembersService(userRepo.repo, invRepo.repo);
       await service.cancelInvitation('clerk_owner', 'inv1');
 
-      expect(invRepo.save).toHaveBeenCalledWith({ ...inv, status: InvitationStatus.CANCELLED });
+      expect(invRepo.save).toHaveBeenCalledWith({
+        ...inv,
+        status: InvitationStatus.CANCELLED,
+      });
     });
 
     it('throws NotFoundException when invitation not found', async () => {
@@ -136,7 +178,9 @@ describe('MembersService', () => {
       invRepo.findOne.mockResolvedValue(null);
 
       const service = new MembersService(userRepo.repo, invRepo.repo);
-      await expect(service.cancelInvitation('clerk_owner', 'inv-missing')).rejects.toThrow(NotFoundException);
+      await expect(
+        service.cancelInvitation('clerk_owner', 'inv-missing'),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 });

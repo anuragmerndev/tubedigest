@@ -8,6 +8,7 @@ import { AuthModule } from './auth/auth.module';
 import { OnboardingModule } from './onboarding/onboarding.module';
 import { OrgsModule } from './orgs/orgs.module';
 import { MembersModule } from './members/members.module';
+import { SummariesModule } from './summaries/summaries.module';
 import { TenantInterceptor } from './common/interceptors/tenant.interceptor';
 
 @Module({
@@ -26,6 +27,7 @@ import { TenantInterceptor } from './common/interceptors/tenant.interceptor';
     OnboardingModule,
     OrgsModule,
     MembersModule,
+    SummariesModule,
   ],
   providers: [
     {

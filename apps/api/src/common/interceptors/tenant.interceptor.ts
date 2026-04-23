@@ -11,6 +11,7 @@ import { Observable, from, throwError } from 'rxjs';
 import { catchError, switchMap } from 'rxjs/operators';
 import { DataSource } from 'typeorm';
 import { IS_PUBLIC_KEY } from '../../auth/public.decorator';
+import { SKIP_TENANT_KEY } from '../../auth/skip-tenant.decorator';
 
 interface ClerkPayload {
   sub?: string;
@@ -32,7 +33,12 @@ export class TenantInterceptor implements NestInterceptor {
       context.getClass(),
     ]);
 
-    if (isPublic) {
+    const skipTenant = this.reflector.getAllAndOverride<boolean>(
+      SKIP_TENANT_KEY,
+      [context.getHandler(), context.getClass()],
+    );
+
+    if (isPublic || skipTenant) {
       return next.handle();
     }
 

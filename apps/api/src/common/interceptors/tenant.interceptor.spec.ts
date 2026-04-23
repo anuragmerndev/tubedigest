@@ -3,6 +3,8 @@ import { Reflector } from '@nestjs/core';
 import { ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { of, throwError } from 'rxjs';
+import { IS_PUBLIC_KEY } from '../../auth/public.decorator';
+import { SKIP_TENANT_KEY } from '../../auth/skip-tenant.decorator';
 
 function makeQueryRunner(overrides: Record<string, jest.Mock> = {}) {
   return {
@@ -22,9 +24,13 @@ function makeDataSource(qr: ReturnType<typeof makeQueryRunner>) {
   } as unknown as DataSource;
 }
 
-function makeReflector(isPublic: boolean) {
+function makeReflector(flags: { isPublic?: boolean; skipTenant?: boolean }) {
   const reflector = new Reflector();
-  jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(isPublic);
+  jest.spyOn(reflector, 'getAllAndOverride').mockImplementation((key) => {
+    if (key === IS_PUBLIC_KEY) return flags.isPublic ?? false;
+    if (key === SKIP_TENANT_KEY) return flags.skipTenant ?? false;
+    return false;
+  });
   return reflector;
 }
 
@@ -40,39 +46,49 @@ function makeContext(orgId: string | undefined) {
 }
 
 describe('TenantInterceptor', () => {
-  it('skips RLS and passes through on public routes', async () => {
+  it('skips RLS on @Public routes', async () => {
     const qr = makeQueryRunner();
     const interceptor = new TenantInterceptor(
-      makeReflector(true),
+      makeReflector({ isPublic: true }),
       makeDataSource(qr),
     );
-    const ctx = makeContext(undefined);
-    const next = { handle: jest.fn().mockReturnValue(of('public-result')) };
+    const next = { handle: jest.fn().mockReturnValue(of('result')) };
 
     const result = await new Promise((resolve, reject) => {
-      interceptor
-        .intercept(ctx, next)
-        .subscribe({ next: resolve, error: reject });
+      interceptor.intercept(makeContext(undefined), next).subscribe({ next: resolve, error: reject });
     });
 
-    expect(result).toBe('public-result');
+    expect(result).toBe('result');
+    expect(qr.connect).not.toHaveBeenCalled();
+  });
+
+  it('skips RLS on @SkipTenant routes (authenticated, no org yet)', async () => {
+    const qr = makeQueryRunner();
+    const interceptor = new TenantInterceptor(
+      makeReflector({ skipTenant: true }),
+      makeDataSource(qr),
+    );
+    const next = { handle: jest.fn().mockReturnValue(of('result')) };
+
+    const result = await new Promise((resolve, reject) => {
+      interceptor.intercept(makeContext(undefined), next).subscribe({ next: resolve, error: reject });
+    });
+
+    expect(result).toBe('result');
     expect(qr.connect).not.toHaveBeenCalled();
   });
 
   it('throws 401 when clerkPayload is missing on protected route', async () => {
     const qr = makeQueryRunner();
     const interceptor = new TenantInterceptor(
-      makeReflector(false),
+      makeReflector({}),
       makeDataSource(qr),
     );
-    const ctx = makeContext(undefined);
     const next = { handle: jest.fn().mockReturnValue(of(null)) };
 
     await expect(
       new Promise((resolve, reject) => {
-        interceptor
-          .intercept(ctx, next)
-          .subscribe({ next: resolve, error: reject });
+        interceptor.intercept(makeContext(undefined), next).subscribe({ next: resolve, error: reject });
       }),
     ).rejects.toThrow(UnauthorizedException);
   });
@@ -80,12 +96,10 @@ describe('TenantInterceptor', () => {
   it('throws 401 when org_id is missing from payload', async () => {
     const qr = makeQueryRunner();
     const interceptor = new TenantInterceptor(
-      makeReflector(false),
+      makeReflector({}),
       makeDataSource(qr),
     );
-    const request = {
-      clerkPayload: { sub: 'user_123' },
-    };
+    const request = { clerkPayload: { sub: 'user_123' } };
     const ctx = {
       getHandler: jest.fn(),
       getClass: jest.fn(),
@@ -95,9 +109,7 @@ describe('TenantInterceptor', () => {
 
     await expect(
       new Promise((resolve, reject) => {
-        interceptor
-          .intercept(ctx, next)
-          .subscribe({ next: resolve, error: reject });
+        interceptor.intercept(ctx, next).subscribe({ next: resolve, error: reject });
       }),
     ).rejects.toThrow(UnauthorizedException);
   });
@@ -105,16 +117,13 @@ describe('TenantInterceptor', () => {
   it('sets app.org_id and commits on success', async () => {
     const qr = makeQueryRunner();
     const interceptor = new TenantInterceptor(
-      makeReflector(false),
+      makeReflector({}),
       makeDataSource(qr),
     );
-    const ctx = makeContext('org_abc');
     const next = { handle: jest.fn().mockReturnValue(of('result')) };
 
     await new Promise((resolve, reject) => {
-      interceptor
-        .intercept(ctx, next)
-        .subscribe({ next: resolve, error: reject });
+      interceptor.intercept(makeContext('org_abc'), next).subscribe({ next: resolve, error: reject });
     });
 
     expect(qr.connect).toHaveBeenCalled();
@@ -130,19 +139,16 @@ describe('TenantInterceptor', () => {
   it('rollbacks and releases on handler error', async () => {
     const qr = makeQueryRunner();
     const interceptor = new TenantInterceptor(
-      makeReflector(false),
+      makeReflector({}),
       makeDataSource(qr),
     );
-    const ctx = makeContext('org_abc');
     const next = {
       handle: jest.fn().mockReturnValue(throwError(() => new Error('boom'))),
     };
 
     await expect(
       new Promise((resolve, reject) => {
-        interceptor
-          .intercept(ctx, next)
-          .subscribe({ next: resolve, error: reject });
+        interceptor.intercept(makeContext('org_abc'), next).subscribe({ next: resolve, error: reject });
       }),
     ).rejects.toThrow('boom');
 

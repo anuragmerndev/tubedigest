@@ -1,5 +1,6 @@
 import { Controller, Get } from '@nestjs/common';
 import { Public } from './auth/public.decorator';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
 @Controller()
 export class AppController {
@@ -10,6 +11,7 @@ export class AppController {
   }
 
   @Get('protected')
+  @ApiBearerAuth()
   protected() {
     return { status: 'reached' };
   }

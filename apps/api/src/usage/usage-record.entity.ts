@@ -21,7 +21,7 @@ export class UsageRecord {
   @Column({ type: 'int', default: 0 })
   count: number;
 
-  @Column({ name: 'summary_limit', type: 'int', default: FREE_MONTHLY_LIMIT })
+  @Column({ name: 'limit', type: 'int', default: FREE_MONTHLY_LIMIT })
   limit: number;
 
   @CreateDateColumn({ name: 'created_at' })

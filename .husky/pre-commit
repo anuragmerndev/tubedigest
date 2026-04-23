@@ -1,0 +1,10 @@
+echo "[Husky] 🔍 Running lint..."
+pnpm lint
+
+echo "[Husky] ✅ Lint passed. Running type-check..."
+pnpm type-check
+
+echo "[Husky] ✅ Type-check passed. Running build..."
+pnpm build
+
+echo "[Husky] ✅ Build passed. Committing..."

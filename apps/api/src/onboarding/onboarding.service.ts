@@ -7,6 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Organization } from '../organizations/organization.entity';
 import { User, UserRole } from '../users/user.entity';
+import { DodoClientService } from '../billing/dodo-client.service';
 
 @Injectable()
 export class OnboardingService {
@@ -15,6 +16,7 @@ export class OnboardingService {
     private readonly orgRepo: Repository<Organization>,
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
+    private readonly dodo: DodoClientService,
   ) {}
 
   async createOrg(
@@ -36,7 +38,17 @@ export class OnboardingService {
       throw new ConflictException(`Slug "${slug}" is already taken`);
     }
 
-    const org = this.orgRepo.create({ name, slug });
+    // Create Dodo customer so we can attach checkouts and usage events
+    const dodoCustomer = await this.dodo.client.customers.create({
+      email: user.email,
+      name,
+    });
+
+    const org = this.orgRepo.create({
+      name,
+      slug,
+      dodoCustomerId: dodoCustomer.customer_id,
+    });
     const savedOrg = await this.orgRepo.save(org);
 
     user.orgId = savedOrg.id;

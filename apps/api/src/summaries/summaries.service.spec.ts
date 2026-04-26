@@ -3,8 +3,10 @@ import { Repository } from 'typeorm';
 import { Video } from './video.entity';
 import { UserSummary } from './user-summary.entity';
 import { User } from '../users/user.entity';
+import { Organization } from '../organizations/organization.entity';
 import { UnprocessableEntityException } from '@nestjs/common';
 import { UsageService } from '../usage/usage.service';
+import { DodoClientService } from '../billing/dodo-client.service';
 
 const mockFetchTranscript = jest.fn();
 const mockOpenAICreate = jest.fn();
@@ -49,6 +51,32 @@ const mockUsageService = {
   checkAndIncrement: jest.fn().mockResolvedValue(undefined),
 } as unknown as UsageService;
 
+// Org has no dodoCustomerId so ingestUsageEvent returns early without calling Dodo
+const mockOrgRepo = {
+  findOne: jest.fn().mockResolvedValue({ id: 'org1', dodoCustomerId: null }),
+} as unknown as Repository<Organization>;
+
+const mockDodo = {
+  client: {
+    usageEvents: { ingest: jest.fn().mockResolvedValue({ ingested_count: 1 }) },
+  },
+} as unknown as DodoClientService;
+
+function makeService(
+  videoRepo: Repository<Video>,
+  summaryRepo: Repository<UserSummary>,
+  userRepo: Repository<User>,
+) {
+  return new SummariesService(
+    videoRepo,
+    summaryRepo,
+    userRepo,
+    mockOrgRepo,
+    mockUsageService,
+    mockDodo,
+  );
+}
+
 describe('SummariesService', () => {
   beforeEach(() => {
     mockFetchTranscript.mockReset();
@@ -64,11 +92,10 @@ describe('SummariesService', () => {
     const userRepo = makeRepo<User>();
     userRepo.findOne.mockResolvedValue(user);
 
-    const service = new SummariesService(
+    const service = makeService(
       videoRepo.repo,
       summaryRepo.repo,
       userRepo.repo,
-      mockUsageService,
     );
     await expect(
       service.submitSummary('clerk_abc', 'https://notyoutube.com/watch?v=abc'),
@@ -97,11 +124,10 @@ describe('SummariesService', () => {
     summaryRepo.create.mockReturnValue(userSummary);
     summaryRepo.save.mockResolvedValue(userSummary);
 
-    const service = new SummariesService(
+    const service = makeService(
       videoRepo.repo,
       summaryRepo.repo,
       userRepo.repo,
-      mockUsageService,
     );
     const result = await service.submitSummary(
       'clerk_abc',
@@ -147,11 +173,10 @@ describe('SummariesService', () => {
       choices: [{ message: { content: 'AI summary' } }],
     });
 
-    const service = new SummariesService(
+    const service = makeService(
       videoRepo.repo,
       summaryRepo.repo,
       userRepo.repo,
-      mockUsageService,
     );
     const result = await service.submitSummary(
       'clerk_abc',
@@ -180,11 +205,10 @@ describe('SummariesService', () => {
       new YoutubeTranscriptDisabledError('abc123'),
     );
 
-    const service = new SummariesService(
+    const service = makeService(
       videoRepo.repo,
       summaryRepo.repo,
       userRepo.repo,
-      mockUsageService,
     );
     await expect(
       service.submitSummary('clerk_abc', 'https://youtube.com/watch?v=abc123'),

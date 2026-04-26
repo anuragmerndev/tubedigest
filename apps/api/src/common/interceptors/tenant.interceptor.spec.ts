@@ -18,9 +18,13 @@ function makeQueryRunner(overrides: Record<string, jest.Mock> = {}) {
   };
 }
 
-function makeDataSource(qr: ReturnType<typeof makeQueryRunner>) {
+function makeDataSource(
+  qr: ReturnType<typeof makeQueryRunner>,
+  orgRow: { org_id: string } | null = { org_id: 'org_abc' },
+) {
   return {
     createQueryRunner: jest.fn().mockReturnValue(qr),
+    query: jest.fn().mockResolvedValue(orgRow ? [orgRow] : []),
   } as unknown as DataSource;
 }
 
@@ -34,9 +38,9 @@ function makeReflector(flags: { isPublic?: boolean; skipTenant?: boolean }) {
   return reflector;
 }
 
-function makeContext(orgId: string | undefined) {
+function makeContext(sub: string | undefined) {
   const request = {
-    clerkPayload: orgId ? { org_id: orgId } : undefined,
+    clerkPayload: sub ? { sub } : undefined,
   };
   return {
     getHandler: jest.fn(),
@@ -99,24 +103,19 @@ describe('TenantInterceptor', () => {
     ).rejects.toThrow(UnauthorizedException);
   });
 
-  it('throws 401 when org_id is missing from payload', async () => {
+  it('throws 401 when user has no organisation in DB', async () => {
     const qr = makeQueryRunner();
+    // dataSource.query returns empty rows → no org found
     const interceptor = new TenantInterceptor(
       makeReflector({}),
-      makeDataSource(qr),
+      makeDataSource(qr, null),
     );
-    const request = { clerkPayload: { sub: 'user_123' } };
-    const ctx = {
-      getHandler: jest.fn(),
-      getClass: jest.fn(),
-      switchToHttp: () => ({ getRequest: () => request }),
-    } as unknown as ExecutionContext;
     const next = { handle: jest.fn().mockReturnValue(of(null)) };
 
     await expect(
       new Promise((resolve, reject) => {
         interceptor
-          .intercept(ctx, next)
+          .intercept(makeContext('user_123'), next)
           .subscribe({ next: resolve, error: reject });
       }),
     ).rejects.toThrow(UnauthorizedException);
@@ -126,13 +125,13 @@ describe('TenantInterceptor', () => {
     const qr = makeQueryRunner();
     const interceptor = new TenantInterceptor(
       makeReflector({}),
-      makeDataSource(qr),
+      makeDataSource(qr, { org_id: 'org_abc' }),
     );
     const next = { handle: jest.fn().mockReturnValue(of('result')) };
 
     await new Promise((resolve, reject) => {
       interceptor
-        .intercept(makeContext('org_abc'), next)
+        .intercept(makeContext('clerk_abc'), next)
         .subscribe({ next: resolve, error: reject });
     });
 
@@ -150,7 +149,7 @@ describe('TenantInterceptor', () => {
     const qr = makeQueryRunner();
     const interceptor = new TenantInterceptor(
       makeReflector({}),
-      makeDataSource(qr),
+      makeDataSource(qr, { org_id: 'org_abc' }),
     );
     const next = {
       handle: jest.fn().mockReturnValue(throwError(() => new Error('boom'))),
@@ -159,7 +158,7 @@ describe('TenantInterceptor', () => {
     await expect(
       new Promise((resolve, reject) => {
         interceptor
-          .intercept(makeContext('org_abc'), next)
+          .intercept(makeContext('clerk_abc'), next)
           .subscribe({ next: resolve, error: reject });
       }),
     ).rejects.toThrow('boom');

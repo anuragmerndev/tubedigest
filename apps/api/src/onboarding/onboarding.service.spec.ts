@@ -3,6 +3,7 @@ import { Repository } from 'typeorm';
 import { Organization } from '../organizations/organization.entity';
 import { User, UserRole } from '../users/user.entity';
 import { ConflictException, NotFoundException } from '@nestjs/common';
+import { DodoClientService } from '../billing/dodo-client.service';
 
 function makeOrgRepo() {
   const findOne = jest.fn();
@@ -19,13 +20,25 @@ function makeUserRepo() {
   return { repo, findOne, save };
 }
 
+const mockDodo = {
+  client: {
+    customers: {
+      create: jest.fn().mockResolvedValue({ customer_id: 'cus_test123' }),
+    },
+  },
+} as unknown as DodoClientService;
+
 describe('OnboardingService', () => {
   it('throws NotFoundException when user not found', async () => {
     const orgRepo = makeOrgRepo();
     const userRepo = makeUserRepo();
     userRepo.findOne.mockResolvedValue(null);
 
-    const service = new OnboardingService(orgRepo.repo, userRepo.repo);
+    const service = new OnboardingService(
+      orgRepo.repo,
+      userRepo.repo,
+      mockDodo,
+    );
     await expect(service.createOrg('clerk_abc', 'Acme')).rejects.toThrow(
       NotFoundException,
     );
@@ -34,11 +47,20 @@ describe('OnboardingService', () => {
   it('throws ConflictException when slug already exists', async () => {
     const orgRepo = makeOrgRepo();
     const userRepo = makeUserRepo();
-    const user = { id: 'u1', clerkId: 'clerk_abc', orgId: null } as User;
+    const user = {
+      id: 'u1',
+      clerkId: 'clerk_abc',
+      orgId: null,
+      email: 'a@b.com',
+    } as User;
     userRepo.findOne.mockResolvedValue(user);
     orgRepo.findOne.mockResolvedValue({ id: 'existing-org' });
 
-    const service = new OnboardingService(orgRepo.repo, userRepo.repo);
+    const service = new OnboardingService(
+      orgRepo.repo,
+      userRepo.repo,
+      mockDodo,
+    );
     await expect(service.createOrg('clerk_abc', 'Acme')).rejects.toThrow(
       ConflictException,
     );
@@ -52,8 +74,14 @@ describe('OnboardingService', () => {
       clerkId: 'clerk_abc',
       orgId: null,
       role: UserRole.MEMBER,
+      email: 'a@b.com',
     } as User;
-    const org = { id: 'org1', name: 'Acme', slug: 'acme' };
+    const org = {
+      id: 'org1',
+      name: 'Acme',
+      slug: 'acme',
+      dodoCustomerId: 'cus_test123',
+    };
 
     userRepo.findOne.mockResolvedValue(user);
     orgRepo.findOne.mockResolvedValue(null);
@@ -65,10 +93,18 @@ describe('OnboardingService', () => {
       role: UserRole.OWNER,
     });
 
-    const service = new OnboardingService(orgRepo.repo, userRepo.repo);
+    const service = new OnboardingService(
+      orgRepo.repo,
+      userRepo.repo,
+      mockDodo,
+    );
     const result = await service.createOrg('clerk_abc', 'Acme');
 
-    expect(orgRepo.create).toHaveBeenCalledWith({ name: 'Acme', slug: 'acme' });
+    expect(orgRepo.create).toHaveBeenCalledWith({
+      name: 'Acme',
+      slug: 'acme',
+      dodoCustomerId: 'cus_test123',
+    });
     expect(userRepo.save).toHaveBeenCalledWith({
       ...user,
       orgId: 'org1',

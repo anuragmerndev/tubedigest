@@ -24,6 +24,9 @@ export class Organization {
   @Column({ type: 'enum', enum: OrgPlan, default: OrgPlan.FREE })
   plan: OrgPlan;
 
+  @Column({ name: 'dodo_customer_id', nullable: true, type: 'varchar' })
+  dodoCustomerId: string | null;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 }

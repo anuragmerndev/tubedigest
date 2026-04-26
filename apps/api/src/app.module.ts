@@ -12,6 +12,7 @@ import { OrgsModule } from './orgs/orgs.module';
 import { MembersModule } from './members/members.module';
 import { SummariesModule } from './summaries/summaries.module';
 import { UsageModule } from './usage/usage.module';
+import { BillingModule } from './billing/billing.module';
 import { TenantInterceptor } from './common/interceptors/tenant.interceptor';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
 import { UserThrottlerGuard } from './common/guards/user-throttler.guard';
@@ -40,6 +41,7 @@ import { winstonConfig } from './config/logger.config';
     MembersModule,
     SummariesModule,
     UsageModule,
+    BillingModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: UserThrottlerGuard },

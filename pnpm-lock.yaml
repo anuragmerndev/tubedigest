@@ -53,6 +53,9 @@ importers:
       class-validator:
         specifier: ^0.15.1
         version: 0.15.1
+      dodopayments:
+        specifier: ^2.28.2
+        version: 2.28.2
       dotenv:
         specifier: ^17.4.2
         version: 17.4.2
@@ -74,6 +77,12 @@ importers:
       rxjs:
         specifier: ^7.8.1
         version: 7.8.2
+      standardwebhooks:
+        specifier: ^1.0.0
+        version: 1.0.0
+      svix:
+        specifier: ^1.92.2
+        version: 1.92.2
       typeorm:
         specifier: ^0.3.28
         version: 0.3.28(pg@8.20.0)(ts-node@10.9.2(@types/node@24.12.2)(typescript@5.9.3))
@@ -2566,6 +2575,10 @@ packages:
     resolution: {integrity: sha512-35mSku4ZXK0vfCuHEDAwt55dg2jNajHZ1odvF+8SSr82EsZY4QmXfuWso8oEd8zRhVObSN18aM0CjSdoBX7zIw==}
     engines: {node: '>=0.10.0'}
 
+  dodopayments@2.28.2:
+    resolution: {integrity: sha512-Ga029brnK4ziYNP41SVYfmNE+jGksvJnqatd7aA5idifudN7VV+PrJ9DPLyy3epl/ujxw+N1qgMTsrARgwiruA==}
+    hasBin: true
+
   dot-prop@5.3.0:
     resolution: {integrity: sha512-QM8q3zDe58hqUqjraQOmzZ1LIH9SWQJTlEKCH4kJ2oQvLZk7RbQXvtDM2XEq3fwkV9CCvvH4LA0AV+ogFsBM2Q==}
     engines: {node: '>=8'}
@@ -4807,6 +4820,9 @@ packages:
   supports-preserve-symlinks-flag@1.0.0:
     resolution: {integrity: sha512-ot0WnXS9fgdkgIcePe6RHNk1WA8+muPa6cSjeR3V8K27q9BB1rTE3R1p7Hv0z1ZyAc8s6Vvv8DIyWf681MAt0w==}
     engines: {node: '>= 0.4'}
+
+  svix@1.92.2:
+    resolution: {integrity: sha512-ZmuA3UVvlnF9EgxlzmPtF7CKjQb64Z6OFlyfdDfU0sdcC7dJa+3aOYX5B9mA+RS6ch1AxBa4UP/l6KmqfGtWBQ==}
 
   swagger-ui-dist@5.32.4:
     resolution: {integrity: sha512-0AADFFQNJzExEN49SrD/34Nn9cxNxVLiydYl2MBwSZFPVXNkVwC/EFAjoezGGqE8oDegiDC+p47t8lKObCinMQ==}
@@ -7851,6 +7867,10 @@ snapshots:
     dependencies:
       esutils: 2.0.3
 
+  dodopayments@2.28.2:
+    dependencies:
+      standardwebhooks: 1.0.0
+
   dot-prop@5.3.0:
     dependencies:
       is-obj: 2.0.0
@@ -10497,6 +10517,10 @@ snapshots:
       has-flag: 4.0.0
 
   supports-preserve-symlinks-flag@1.0.0: {}
+
+  svix@1.92.2:
+    dependencies:
+      standardwebhooks: 1.0.0
 
   swagger-ui-dist@5.32.4:
     dependencies:

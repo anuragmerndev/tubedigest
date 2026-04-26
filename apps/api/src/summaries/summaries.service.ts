@@ -16,6 +16,8 @@ import { Video } from './video.entity';
 import { UserSummary } from './user-summary.entity';
 import { User } from '../users/user.entity';
 import { UsageService } from '../usage/usage.service';
+import { DodoClientService } from '../billing/dodo-client.service';
+import { Organization } from '../organizations/organization.entity';
 
 const MAX_CHARS = 16000; // ~4000 tokens
 
@@ -38,7 +40,10 @@ export class SummariesService {
     private readonly userSummaryRepo: Repository<UserSummary>,
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
+    @InjectRepository(Organization)
+    private readonly orgRepo: Repository<Organization>,
     private readonly usageService: UsageService,
+    private readonly dodo: DodoClientService,
   ) {}
 
   private extractVideoId(url: string): string {
@@ -85,6 +90,7 @@ export class SummariesService {
         videoId: existing.id,
       });
       const saved = await this.userSummaryRepo.save(userSummary);
+      void this.ingestUsageEvent(user.orgId, saved.id);
       return {
         summaryId: saved.id,
         videoId: existing.id,
@@ -146,6 +152,7 @@ export class SummariesService {
       videoId: savedVideo.id,
     });
     const savedUserSummary = await this.userSummaryRepo.save(userSummary);
+    void this.ingestUsageEvent(user.orgId, savedUserSummary.id);
 
     return {
       summaryId: savedUserSummary.id,
@@ -154,6 +161,27 @@ export class SummariesService {
       summary,
       truncated,
     };
+  }
+
+  private async ingestUsageEvent(
+    orgId: string,
+    eventId: string,
+  ): Promise<void> {
+    const org = await this.orgRepo.findOne({ where: { id: orgId } });
+    if (!org?.dodoCustomerId) return;
+    try {
+      await this.dodo.client.usageEvents.ingest({
+        events: [
+          {
+            event_id: eventId,
+            customer_id: org.dodoCustomerId,
+            event_name: 'video.summarized',
+          },
+        ],
+      });
+    } catch {
+      // Fire-and-forget — don't fail the user's request if Dodo ingestion fails
+    }
   }
 
   async listSummaries(

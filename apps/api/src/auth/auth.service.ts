@@ -21,4 +21,8 @@ export class AuthService {
     const user = this.userRepo.create({ clerkId, email });
     return this.userRepo.save(user);
   }
+
+  async deleteUser(clerkId: string): Promise<void> {
+    await this.userRepo.delete({ clerkId });
+  }
 }

@@ -17,7 +17,6 @@ import {
   useUsageCurrent,
   useSubscription,
   useBillingPortal,
-  useBillingCheckout,
 } from '@/hooks/use-api'
 import type { UserRole } from '@/lib/api'
 import { cn } from '@/lib/utils'
@@ -353,7 +352,6 @@ function BillingTab() {
   const { data: usage } = useUsageCurrent()
   const { data: subscription } = useSubscription()
   const { openPortal, loading: portalLoading } = useBillingPortal()
-  const { checkout, loading: checkoutLoading } = useBillingCheckout()
 
   const isPro = org?.plan === 'pro'
   const count = usage?.count ?? 0
@@ -375,15 +373,6 @@ function BillingTab() {
     }
   }
 
-  async function handleCheckout() {
-    try {
-      const url = await checkout()
-      window.location.href = url
-    } catch {
-      /* noop */
-    }
-  }
-
   return (
     <div className="flex flex-col gap-4">
       {/* Current plan */}
@@ -396,7 +385,7 @@ function BillingTab() {
         >
           <Badge tone="primary" className="mb-1.5">Current plan</Badge>
           <div className="text-[24px] font-semibold tracking-[-0.02em]">
-            {isPro ? 'Pro · $29 / month' : 'Free'}
+            {isPro ? 'Pro · $10 / month' : 'Free'}
           </div>
           <div className="text-[13px] text-td-text-muted mt-1">
             {renewDate ? (
@@ -453,40 +442,6 @@ function BillingTab() {
         </div>
       </Card>
 
-      {/* Upgrade / change plan */}
-      <Card padding={22}>
-        <div className="flex items-center gap-4">
-          <div
-            className="grid place-items-center shrink-0"
-            style={{
-              width: 44, height: 44, borderRadius: 10,
-              background: 'var(--td-surface2)',
-              border: '1px solid var(--td-border)',
-              color: 'var(--td-text-muted)',
-            }}
-          >
-            <IconBolt size={18} />
-          </div>
-          <div className="flex-1">
-            <div className="text-[14px] font-medium">
-              {isPro ? 'Need more than 500 summaries / month?' : 'Upgrade to Pro'}
-            </div>
-            <div className="text-[12.5px] text-td-text-muted mt-0.5">
-              {isPro
-                ? <>Switch to usage-based billing at <span className="font-mono-td text-td-text">$0.04 / summary</span> after the included pool.</>
-                : 'Get 500 summaries/month, priority processing, and team access.'}
-            </div>
-          </div>
-          <Button
-            variant="secondary"
-            size="md"
-            onClick={handleCheckout}
-            disabled={checkoutLoading}
-          >
-            {checkoutLoading ? 'Loading…' : isPro ? 'Change plan' : 'Upgrade to Pro'}
-          </Button>
-        </div>
-      </Card>
     </div>
   )
 }

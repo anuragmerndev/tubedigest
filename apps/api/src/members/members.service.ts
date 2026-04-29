@@ -1,15 +1,22 @@
 import {
   ForbiddenException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { createClerkClient } from '@clerk/backend';
 import { User, UserRole } from '../users/user.entity';
 import { Invitation, InvitationStatus } from '../invitations/invitation.entity';
 
 @Injectable()
 export class MembersService {
+  private readonly logger = new Logger(MembersService.name);
+  private readonly clerk = createClerkClient({
+    secretKey: process.env.CLERK_SECRET_KEY!,
+  });
+
   constructor(
     @InjectRepository(User)
     private readonly userRepo: Repository<User>,
@@ -56,7 +63,21 @@ export class MembersService {
       role,
       invitedBy: user.id,
     });
-    return this.invitationRepo.save(invitation);
+    const saved = await this.invitationRepo.save(invitation);
+
+    // Send invitation email via Clerk
+    try {
+      await this.clerk.invitations.createInvitation({
+        emailAddress: email,
+        redirectUrl: `${process.env.FRONTEND_URL ?? 'http://localhost:3000'}/sign-up`,
+      });
+    } catch (err) {
+      this.logger.warn(
+        `Failed to send Clerk invitation email to ${email}: ${(err as Error).message}`,
+      );
+    }
+
+    return saved;
   }
 
   async listInvitations(clerkId: string): Promise<Invitation[]> {

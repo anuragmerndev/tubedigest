@@ -7,7 +7,7 @@ import { StatCard } from '@/components/ui/stat-card'
 import { UsageChart } from '@/components/ui/usage-chart'
 import { VideoThumb } from '@/components/ui/video-thumb'
 import { buttonVariants } from '@/components/ui/button'
-import { useUsageCurrent, useUsageDaily, useSummaries } from '@/hooks/use-api'
+import { useOrg, useUsageCurrent, useUsageDaily, useSummaries } from '@/hooks/use-api'
 
 function getGreeting() {
   const h = new Date().getHours()
@@ -46,6 +46,7 @@ function extractVideoId(url: string) {
 
 export default function DashboardPage() {
   const { user } = useUser()
+  const { data: org } = useOrg()
   const { data: usage, loading: usageLoading } = useUsageCurrent()
   const { data: daily, loading: dailyLoading } = useUsageDaily()
   const { data: summaryList, loading: summariesLoading } = useSummaries(1, 5)
@@ -56,7 +57,7 @@ export default function DashboardPage() {
     'there'
 
   const count = usage?.count ?? 0
-  const limit = usage?.limit ?? 500
+  const limit = usage?.limit ?? 10
   const pct = limit > 0 ? (count / limit) * 100 : 0
   const remaining = Math.max(0, limit - count)
 
@@ -106,7 +107,7 @@ export default function DashboardPage() {
         />
         <StatCard
           label="Plan"
-          value={usageLoading ? '—' : (limit >= 500 ? 'Pro' : 'Free')}
+          value={org?.plan === 'pro' ? 'Pro' : 'Free'}
           sub={usageLoading ? 'Loading…' : `${limit} summaries / month`}
         />
       </div>

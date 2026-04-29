@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { Mail, Lock, AlertCircle } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { buttonVariants } from '@/components/ui/button'
+import { Logo } from '@/components/logo'
 import { cn } from '@/lib/utils'
 
 function GoogleIcon() {
@@ -58,11 +59,12 @@ export default function SignInPage() {
   async function handleGoogleSignIn() {
     if (!isReady) return
     setOauthLoading(true)
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin
     try {
       const { error: ssoError } = await signIn.sso({
         strategy: 'oauth_google',
-        redirectUrl: `${window.location.origin}/sso-callback`,
-        redirectCallbackUrl: `${window.location.origin}/dashboard`,
+        redirectUrl: `${appUrl}/sso-callback`,
+        redirectCallbackUrl: `${appUrl}/dashboard`,
       })
       if (ssoError) {
         setError(ssoError.message)
@@ -75,6 +77,17 @@ export default function SignInPage() {
   }
 
   return (
+    <div className="min-h-full flex flex-col items-center justify-center px-4">
+      <div
+        className="fixed inset-0 pointer-events-none"
+        style={{
+          backgroundImage: 'radial-gradient(circle at 50% 30%, rgba(139,92,246,0.08), transparent 55%)',
+        }}
+      />
+      <div className="relative w-full max-w-[380px]">
+        <div className="flex justify-center mb-8">
+          <Logo size={22} />
+        </div>
     <div className="bg-card border border-border rounded-xl p-8">
       <h1 className="text-[22px] font-semibold tracking-[-0.02em] mb-1">Welcome back</h1>
       <p className="text-[13.5px] text-td-text-muted mb-6">Sign in to your TubeDigest account.</p>
@@ -135,12 +148,17 @@ export default function SignInPage() {
         </button>
       </form>
 
+      {/* Clerk CAPTCHA widget */}
+      <div id="clerk-captcha" className="mt-3" />
+
       <p className="text-center text-[13px] text-td-text-muted mt-5">
         Don&apos;t have an account?{' '}
         <Link href="/sign-up" className="text-primary hover:underline">
           Sign up
         </Link>
       </p>
+    </div>
+      </div>
     </div>
   )
 }

@@ -136,7 +136,7 @@ function VisualWorkspacePreview({ orgName }: { orgName: string }) {
         <div className="flex justify-between text-[12px] text-td-text-muted">
           <div>
             <div className="text-td-text-dim text-[11px] mb-0.5">Plan</div>
-            <div className="text-foreground font-medium">Free · 20 / mo</div>
+            <div className="text-foreground font-medium">Free · 10 / mo</div>
           </div>
           <div>
             <div className="text-td-text-dim text-[11px] mb-0.5">Seats</div>

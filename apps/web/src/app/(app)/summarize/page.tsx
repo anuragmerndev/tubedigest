@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { Card } from '@/components/ui/card'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -81,7 +82,8 @@ function IconExtern({ size = 11 }: { size?: number }) {
 }
 
 export default function SummarizePage() {
-  const [url, setUrl] = useState('')
+  const searchParams = useSearchParams()
+  const [url, setUrl] = useState(searchParams.get('url') ?? '')
   const [result, setResult] = useState<SummaryResult | null>(null)
   const [copied, setCopied] = useState(false)
   const submitTimeRef = useRef<number>(0)

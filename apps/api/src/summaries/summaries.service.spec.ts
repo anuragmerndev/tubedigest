@@ -62,6 +62,12 @@ const mockDodo = {
   },
 } as unknown as DodoClientService;
 
+const mockTranscriptService = {
+  fetchTranscript: jest
+    .fn()
+    .mockResolvedValue([{ text: 'Hello world', start: 0, dur: 1 }]),
+} as unknown as import('./transcript.service').TranscriptService;
+
 function makeService(
   videoRepo: Repository<Video>,
   summaryRepo: Repository<UserSummary>,
@@ -74,6 +80,7 @@ function makeService(
     mockOrgRepo,
     mockUsageService,
     mockDodo,
+    mockTranscriptService,
   );
 }
 

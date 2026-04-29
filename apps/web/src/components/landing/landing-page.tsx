@@ -13,6 +13,7 @@ import {
 import { Logo } from '@/components/logo'
 import { Badge } from '@/components/ui/badge'
 import { buttonVariants } from '@/components/ui/button'
+import { HeroInput } from './hero-input'
 import { cn } from '@/lib/utils'
 import { VideoThumb } from '@/components/ui/video-thumb'
 
@@ -131,20 +132,12 @@ function HeroA() {
 
         {/* Inline summarizer CTA */}
         <div className="max-w-[620px] mx-auto mb-4 relative">
-          <div className="flex items-center h-[52px] bg-card border border-border rounded-[10px] px-4 gap-3">
-            <Link2 size={15} className="text-td-text-dim shrink-0" />
-            <span className="text-td-text-muted text-[14px] flex-1 text-left font-mono-td truncate">
-              https://youtube.com/watch?v=dQw4w9WgXcQ
-            </span>
-            <Link href="/sign-up" className={cn(buttonVariants({ size: 'md' }), 'gap-1.5')}>
-              Summarize <Sparkles size={14} />
-            </Link>
-          </div>
+          <HeroInput />
         </div>
 
         <div className="flex justify-center gap-4 text-td-text-dim text-[12px]">
           <span>&#10003; No credit card</span>
-          <span>&#10003; 20 free summaries/mo</span>
+          <span>&#10003; 10 free summaries/mo</span>
           <span>&#10003; SOC 2 ready</span>
         </div>
 
@@ -324,7 +317,7 @@ const TIERS = [
     href: '/sign-up',
     featured: false,
     features: [
-      '20 summaries / month',
+      '10 summaries / month',
       '1 workspace, 1 seat',
       'TL;DR + chapters',
       'Community support',
@@ -333,7 +326,7 @@ const TIERS = [
   },
   {
     name: 'Pro',
-    price: '$29',
+    price: '$10',
     period: 'per user / month',
     desc: 'For teams that live in video calls and explainers.',
     cta: 'Start 14-day trial',
@@ -443,7 +436,7 @@ function FinalCTA() {
           Stop re-watching. Start re-reading.
         </h2>
         <p className="text-[16px] text-td-text-muted max-w-[440px] mx-auto mb-7">
-          20 free summaries. No credit card. Your team will thank you.
+          10 free summaries. No credit card. Your team will thank you.
         </p>
         <div className="flex gap-2.5 justify-center">
           <Link href="/sign-up" className={cn(buttonVariants({ size: 'xl' }), 'gap-2')}>

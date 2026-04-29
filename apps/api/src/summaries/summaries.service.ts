@@ -1,16 +1,11 @@
 import {
   Injectable,
+  Logger,
   NotFoundException,
   UnprocessableEntityException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import {
-  YoutubeTranscript,
-  YoutubeTranscriptDisabledError,
-  YoutubeTranscriptNotAvailableError,
-  YoutubeTranscriptVideoUnavailableError,
-} from 'youtube-transcript';
 import OpenAI from 'openai';
 import { Video } from './video.entity';
 import { UserSummary } from './user-summary.entity';
@@ -18,6 +13,7 @@ import { User } from '../users/user.entity';
 import { UsageService } from '../usage/usage.service';
 import { DodoClientService } from '../billing/dodo-client.service';
 import { Organization } from '../organizations/organization.entity';
+import { TranscriptService } from './transcript.service';
 
 const MAX_CHARS = 16000; // ~4000 tokens
 
@@ -31,6 +27,7 @@ export interface SummaryResult {
 
 @Injectable()
 export class SummariesService {
+  private readonly logger = new Logger(SummariesService.name);
   private readonly openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
   constructor(
@@ -44,6 +41,7 @@ export class SummariesService {
     private readonly orgRepo: Repository<Organization>,
     private readonly usageService: UsageService,
     private readonly dodo: DodoClientService,
+    private readonly transcriptService: TranscriptService,
   ) {}
 
   private extractVideoId(url: string): string {
@@ -105,22 +103,21 @@ export class SummariesService {
     let truncated = false;
 
     try {
-      const segments = await YoutubeTranscript.fetchTranscript(videoId);
+      const segments = await this.transcriptService.fetchTranscript(videoId);
+      if (!segments.length) {
+        throw new Error('No transcript segments returned');
+      }
       const full = segments.map((s) => s.text).join(' ');
       const result = this.truncate(full);
       transcriptText = result.text;
       truncated = result.truncated;
     } catch (err) {
-      if (
-        err instanceof YoutubeTranscriptDisabledError ||
-        err instanceof YoutubeTranscriptNotAvailableError ||
-        err instanceof YoutubeTranscriptVideoUnavailableError
-      ) {
-        throw new UnprocessableEntityException(
-          'No captions available for this video',
-        );
-      }
-      throw err;
+      this.logger.warn(
+        `Transcript fetch failed for ${videoId}: ${(err as Error).message}`,
+      );
+      throw new UnprocessableEntityException(
+        'No captions available for this video',
+      );
     }
 
     // Summarise

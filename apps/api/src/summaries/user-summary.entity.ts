@@ -2,8 +2,11 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
+  ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { Video } from './video.entity';
 
 @Entity('user_summaries')
 export class UserSummary {
@@ -18,6 +21,10 @@ export class UserSummary {
 
   @Column({ name: 'video_id', type: 'uuid' })
   videoId: string;
+
+  @ManyToOne(() => Video)
+  @JoinColumn({ name: 'video_id' })
+  video?: Video;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;

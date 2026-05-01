@@ -98,8 +98,14 @@ function HistoryRow({ summary, last, index }: { summary: UserSummary; last: bool
       </div>
 
       {/* Actions col */}
-      <div className="flex justify-end">
-        {videoUrl ? (
+      <div className="flex justify-end gap-1.5">
+        <Link
+          href={`/history/${summary.id}`}
+          className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }))}
+        >
+          View
+        </Link>
+        {videoUrl && (
           <Link
             href={videoUrl}
             target="_blank"
@@ -107,10 +113,7 @@ function HistoryRow({ summary, last, index }: { summary: UserSummary; last: bool
             className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }))}
           >
             <IconExtern size={11} />
-            Open
           </Link>
-        ) : (
-          <span className="text-[11.5px] text-td-text-dim">—</span>
         )}
       </div>
     </div>

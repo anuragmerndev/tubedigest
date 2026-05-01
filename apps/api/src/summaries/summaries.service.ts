@@ -74,14 +74,12 @@ export class SummariesService {
 
     const videoId = this.extractVideoId(url);
 
-    // Enforce monthly limit before doing any work
-    await this.usageService.checkAndIncrement(user.orgId);
-
-    // Cache hit
+    // Cache hit — usage charged, no external calls can fail
     const existing = await this.videoRepo.findOne({
       where: { youtubeVideoId: videoId },
     });
     if (existing?.summary) {
+      await this.usageService.checkAndIncrement(user.orgId);
       const userSummary = this.userSummaryRepo.create({
         userId: user.id,
         orgId: user.orgId,
@@ -98,7 +96,7 @@ export class SummariesService {
       };
     }
 
-    // Cache miss — fetch transcript
+    // Cache miss — fetch transcript BEFORE charging usage
     let transcriptText: string;
     let truncated = false;
 
@@ -119,6 +117,9 @@ export class SummariesService {
         'No captions available for this video',
       );
     }
+
+    // Transcript succeeded — now charge usage
+    await this.usageService.checkAndIncrement(user.orgId);
 
     // Summarise
     const completion = await this.openai.chat.completions.create({
@@ -191,6 +192,7 @@ export class SummariesService {
 
     const [data, total] = await this.userSummaryRepo.findAndCount({
       where: { userId: user.id },
+      relations: ['video'],
       order: { createdAt: 'DESC' },
       skip: (page - 1) * limit,
       take: limit,
@@ -205,6 +207,7 @@ export class SummariesService {
 
     const summary = await this.userSummaryRepo.findOne({
       where: { id, userId: user.id },
+      relations: ['video'],
     });
     if (!summary) throw new NotFoundException('Summary not found');
     return summary;

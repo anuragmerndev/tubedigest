@@ -6,16 +6,73 @@ interface TranscriptSegment {
   dur: number;
 }
 
+interface ApifyResultItem {
+  data?: Array<{ start: string; dur: string; text: string }>;
+}
+
 @Injectable()
 export class TranscriptService {
   private readonly logger = new Logger(TranscriptService.name);
+  private readonly apifyToken = process.env.APIFY_API_TOKEN;
+  private readonly actorId = 'pintostudio~youtube-transcript-scraper';
 
-  /**
-   * Fetch YouTube transcript by extracting caption tracks from the video page
-   * and fetching the timedtext URL with the same cookies.
-   */
   async fetchTranscript(videoId: string): Promise<TranscriptSegment[]> {
-    // Step 1: Fetch the YouTube video page
+    // Primary: Apify scraper
+    if (this.apifyToken) {
+      try {
+        const segments = await this.fetchViaApify(videoId);
+        if (segments.length) return segments;
+        this.logger.warn(
+          `Apify returned 0 usable segments for ${videoId}, falling back to direct`,
+        );
+      } catch (err) {
+        this.logger.warn(
+          `Apify fetch failed for ${videoId}: ${(err as Error).message}. Falling back to direct.`,
+        );
+      }
+    }
+
+    // Fallback: direct scraping
+    return this.fetchDirect(videoId);
+  }
+
+  private async fetchViaApify(videoId: string): Promise<TranscriptSegment[]> {
+    const url = `https://www.youtube.com/watch?v=${videoId}`;
+    const endpoint = `https://api.apify.com/v2/acts/${this.actorId}/run-sync-get-dataset-items?token=${this.apifyToken}`;
+
+    const res = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ videoUrl: url, targetLanguage: 'en' }),
+    });
+
+    if (!res.ok) {
+      const body = await res.text();
+      throw new Error(`Apify HTTP ${res.status}: ${body.slice(0, 200)}`);
+    }
+
+    const results = (await res.json()) as ApifyResultItem[];
+
+    if (!Array.isArray(results) || !results.length || !results[0].data) {
+      throw new Error('Apify returned no data');
+    }
+
+    const segments: TranscriptSegment[] = results[0].data
+      .filter((item) => item.text && item.text.trim())
+      .map((item) => ({
+        text: item.text.trim(),
+        start: parseFloat(item.start) || 0,
+        dur: parseFloat(item.dur) || 0,
+      }));
+
+    this.logger.log(
+      `Apify: fetched ${segments.length} transcript segments for ${videoId}`,
+    );
+
+    return segments;
+  }
+
+  private async fetchDirect(videoId: string): Promise<TranscriptSegment[]> {
     const pageUrl = `https://www.youtube.com/watch?v=${videoId}`;
     const pageRes = await fetch(pageUrl, {
       headers: {
@@ -29,13 +86,10 @@ export class TranscriptService {
       throw new Error(`Failed to fetch YouTube page: ${pageRes.status}`);
     }
 
-    // Capture cookies from the response
     const cookies = pageRes.headers.getSetCookie?.() ?? [];
     const cookieHeader = cookies.map((c) => c.split(';')[0]).join('; ');
-
     const html = await pageRes.text();
 
-    // Step 2: Extract captionTracks from the page JSON
     const captionTracksMatch = html.match(
       /"captionTracks"\s*:\s*(\[.*?\])\s*,\s*"/,
     );
@@ -45,7 +99,10 @@ export class TranscriptService {
 
     let captionTracks: Array<{ baseUrl: string; languageCode: string }>;
     try {
-      captionTracks = JSON.parse(captionTracksMatch[1]) as Array<{ baseUrl: string; languageCode: string }>;
+      captionTracks = JSON.parse(captionTracksMatch[1]) as Array<{
+        baseUrl: string;
+        languageCode: string;
+      }>;
     } catch {
       throw new Error('Failed to parse caption tracks');
     }
@@ -54,11 +111,9 @@ export class TranscriptService {
       throw new Error('No caption tracks available');
     }
 
-    // Prefer English, fall back to first track
     const track =
       captionTracks.find((t) => t.languageCode === 'en') ?? captionTracks[0];
 
-    // Step 3: Fetch the transcript XML using the same cookies
     const transcriptRes = await fetch(track.baseUrl, {
       headers: {
         'User-Agent':
@@ -80,7 +135,6 @@ export class TranscriptService {
       throw new Error('Transcript response was empty');
     }
 
-    // Step 4: Parse XML
     const segments: TranscriptSegment[] = [];
     const regex = /<text start="([^"]*)" dur="([^"]*)">([^<]*)<\/text>/g;
     let match: RegExpExecArray | null;
@@ -94,7 +148,6 @@ export class TranscriptService {
     }
 
     if (!segments.length) {
-      // Try alternative XML format (fmt=json3 not needed, but handle <text> without dur)
       const altRegex = /<text[^>]*>([^<]+)<\/text>/g;
       let altMatch: RegExpExecArray | null;
       while ((altMatch = altRegex.exec(xml)) !== null) {
@@ -107,7 +160,7 @@ export class TranscriptService {
     }
 
     this.logger.log(
-      `Fetched ${segments.length} transcript segments for video ${videoId}`,
+      `Direct: fetched ${segments.length} transcript segments for ${videoId}`,
     );
 
     return segments;
@@ -121,7 +174,9 @@ export class TranscriptService {
       .replace(/&quot;/g, '"')
       .replace(/&#39;/g, "'")
       .replace(/&apos;/g, "'")
-      .replace(/&#(\d+);/g, (_, num: string) => String.fromCharCode(parseInt(num, 10)))
+      .replace(/&#(\d+);/g, (_, num: string) =>
+        String.fromCharCode(parseInt(num, 10)),
+      )
       .replace(/\n/g, ' ');
   }
 }

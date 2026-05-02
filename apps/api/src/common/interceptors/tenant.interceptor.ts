@@ -10,8 +10,8 @@ import { InjectDataSource } from '@nestjs/typeorm';
 import { Observable, from, throwError } from 'rxjs';
 import { catchError, switchMap } from 'rxjs/operators';
 import { DataSource } from 'typeorm';
-import { IS_PUBLIC_KEY } from '../../auth/public.decorator';
-import { SKIP_TENANT_KEY } from '../../auth/skip-tenant.decorator';
+import { IS_PUBLIC_KEY } from '../../modules/auth/public.decorator';
+import { SKIP_TENANT_KEY } from '../../modules/auth/skip-tenant.decorator';
 
 interface ClerkPayload {
   sub?: string;

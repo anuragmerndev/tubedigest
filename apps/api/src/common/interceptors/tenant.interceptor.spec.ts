@@ -3,8 +3,8 @@ import { Reflector } from '@nestjs/core';
 import { ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import { of, throwError } from 'rxjs';
-import { IS_PUBLIC_KEY } from '../../auth/public.decorator';
-import { SKIP_TENANT_KEY } from '../../auth/skip-tenant.decorator';
+import { IS_PUBLIC_KEY } from '../../modules/auth/public.decorator';
+import { SKIP_TENANT_KEY } from '../../modules/auth/skip-tenant.decorator';
 
 function makeQueryRunner(overrides: Record<string, jest.Mock> = {}) {
   return {

@@ -185,7 +185,7 @@ export default function SummarizePage() {
             </div>
             <div>
               Source:{' '}
-              <span className="font-mono-td text-td-text-muted">youtube-transcript</span>
+              <span className="font-mono-td text-td-text-muted">youtube</span>
             </div>
           </div>
         </form>

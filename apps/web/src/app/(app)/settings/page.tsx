@@ -17,6 +17,7 @@ import {
   useUsageCurrent,
   useSubscription,
   useBillingPortal,
+  useBillingCheckout,
 } from '@/hooks/use-api'
 import type { UserRole } from '@/lib/api'
 import { cn } from '@/lib/utils'
@@ -352,6 +353,7 @@ function BillingTab() {
   const { data: usage } = useUsageCurrent()
   const { data: subscription } = useSubscription()
   const { openPortal, loading: portalLoading } = useBillingPortal()
+  const { checkout, loading: checkoutLoading } = useBillingCheckout()
 
   const isPro = org?.plan === 'pro'
   const count = usage?.count ?? 0
@@ -363,6 +365,15 @@ function BillingTab() {
         month: 'long', day: 'numeric', year: 'numeric',
       })
     : null
+
+  async function handleUpgrade() {
+    try {
+      const url = await checkout()
+      window.open(url, '_blank', 'noopener,noreferrer')
+    } catch {
+      /* noop */
+    }
+  }
 
   async function handlePortal() {
     try {
@@ -414,6 +425,35 @@ function BillingTab() {
           </div>
         </div>
       </Card>
+
+      {/* Upgrade CTA */}
+      {!isPro && (
+        <Card padding={22}>
+          <div className="flex items-center gap-4">
+            <div
+              className="grid place-items-center shrink-0"
+              style={{
+                width: 44, height: 44, borderRadius: 10,
+                background: 'var(--td-primary-dim)',
+                border: '1px solid var(--td-primary-border)',
+                color: 'var(--td-primary)',
+              }}
+            >
+              <IconBolt size={18} />
+            </div>
+            <div className="flex-1">
+              <div className="text-[14px] font-medium">Upgrade to Pro</div>
+              <div className="text-[12.5px] text-td-text-muted mt-0.5">
+                Get 100 summaries per month, priority support, and more.
+              </div>
+            </div>
+            <Button size="md" onClick={handleUpgrade} disabled={checkoutLoading}>
+              <IconBolt size={14} />
+              {checkoutLoading ? 'Loading…' : 'Upgrade · $10/mo'}
+            </Button>
+          </div>
+        </Card>
+      )}
 
       {/* Dodo portal */}
       <Card padding={22}>

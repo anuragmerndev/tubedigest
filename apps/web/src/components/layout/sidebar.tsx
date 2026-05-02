@@ -11,6 +11,7 @@ import {
 } from 'lucide-react'
 import { Logo } from '@/components/logo'
 import { cn } from '@/lib/utils'
+import { useOrg, useUsageCurrent } from '@/hooks/use-api'
 
 interface SidebarProps {
   orgName?: string
@@ -27,13 +28,21 @@ const NAV = [
 ]
 
 export function Sidebar({
-  orgName = 'My Workspace',
-  orgPlan = 'Free',
-  usageCount = 0,
-  usageLimit = 10,
+  orgName: fallbackOrgName = 'My Workspace',
+  orgPlan: fallbackPlan = 'Free',
+  usageCount: fallbackCount = 0,
+  usageLimit: fallbackLimit = 10,
 }: SidebarProps) {
   const pathname = usePathname()
   const active = NAV.find((n) => pathname.startsWith(n.href))?.id
+
+  const { data: org } = useOrg()
+  const { data: usage } = useUsageCurrent()
+
+  const orgName = org?.name ?? fallbackOrgName
+  const orgPlan = org?.plan ?? fallbackPlan
+  const usageCount = usage?.count ?? fallbackCount
+  const usageLimit = usage?.limit ?? fallbackLimit
 
   const usagePct = usageLimit > 0 ? Math.min((usageCount / usageLimit) * 100, 100) : 0
   const orgInitials = orgName

@@ -246,5 +246,4 @@ export class BillingService {
     org.creditBalance = parseInt(data.balance_after, 10);
     await this.orgRepo.save(org);
   }
-
 }

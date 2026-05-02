@@ -73,7 +73,7 @@ export class UsageService {
     const user = await this.userRepo.findOne({ where: { clerkId } });
     if (!user?.orgId)
       throw new NotFoundException('User or organisation not found');
-    
+
     const org = await this.orgRepo.findOne({ where: { id: user.orgId } });
     if (!org) throw new NotFoundException('Organisation not found');
 

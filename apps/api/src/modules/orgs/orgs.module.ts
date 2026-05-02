@@ -3,8 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { OrgsService } from './orgs.service';
 import { OrgsController } from './orgs.controller';
 import { RolesGuard } from '../auth/roles.guard';
-import { Organization } from '../organizations/organization.entity';
-import { User } from '../users/user.entity';
+import { Organization, User } from '../../database/entities';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Organization, User])],

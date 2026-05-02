@@ -1,7 +1,6 @@
 import { OrgsService } from './orgs.service';
 import { Repository } from 'typeorm';
-import { Organization } from '../organizations/organization.entity';
-import { User } from '../users/user.entity';
+import { Organization, User } from '../../database/entities';
 import { NotFoundException } from '@nestjs/common';
 
 function makeOrgRepo() {

@@ -3,10 +3,12 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { SummariesController } from './summaries.controller';
 import { SummariesService } from './summaries.service';
 import { TranscriptService } from './transcript.service';
-import { Video } from './video.entity';
-import { UserSummary } from './user-summary.entity';
-import { User } from '../users/user.entity';
-import { Organization } from '../organizations/organization.entity';
+import {
+  Video,
+  UserSummary,
+  User,
+  Organization,
+} from '../../database/entities';
 import { UsageModule } from '../usage/usage.module';
 import { BillingModule } from '../billing/billing.module';
 

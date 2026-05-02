@@ -4,7 +4,7 @@ import {
   Entity,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { UserRole } from '../users/user.entity';
+import { UserRole } from './user.entity';
 
 export enum InvitationStatus {
   PENDING = 'pending',

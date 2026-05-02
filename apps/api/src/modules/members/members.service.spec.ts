@@ -1,7 +1,11 @@
 import { MembersService } from './members.service';
 import { Repository } from 'typeorm';
-import { User, UserRole } from '../users/user.entity';
-import { Invitation, InvitationStatus } from '../invitations/invitation.entity';
+import {
+  User,
+  UserRole,
+  Invitation,
+  InvitationStatus,
+} from '../../database/entities';
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
 
 function makeUserRepo() {

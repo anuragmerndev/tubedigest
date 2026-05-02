@@ -5,8 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Organization } from '../organizations/organization.entity';
-import { User, UserRole } from '../users/user.entity';
+import { Organization, User, UserRole } from '../../database/entities';
 import { DodoClientService } from '../billing/dodo-client.service';
 
 @Injectable()

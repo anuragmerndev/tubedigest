@@ -12,7 +12,7 @@ import type { Request } from 'express';
 import { BillingService } from './billing.service';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
-import { UserRole } from '../users/user.entity';
+import { UserRole } from '../../database/entities';
 import { Public } from '../auth/public.decorator';
 import { SkipTenant } from '../auth/skip-tenant.decorator';
 

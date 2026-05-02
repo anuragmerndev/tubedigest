@@ -1,7 +1,6 @@
 import { OnboardingService } from './onboarding.service';
 import { Repository } from 'typeorm';
-import { Organization } from '../organizations/organization.entity';
-import { User, UserRole } from '../users/user.entity';
+import { Organization, User, UserRole } from '../../database/entities';
 import { ConflictException, NotFoundException } from '@nestjs/common';
 import { DodoClientService } from '../billing/dodo-client.service';
 

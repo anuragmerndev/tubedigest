@@ -15,7 +15,7 @@ import { MembersService } from './members.service';
 import { InviteMemberDto } from './dto/invite-member.dto';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
-import { UserRole } from '../users/user.entity';
+import { UserRole } from '../../database/entities';
 
 interface ClerkRequest {
   clerkPayload: { sub: string };

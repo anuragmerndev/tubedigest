@@ -1,10 +1,12 @@
 import { HttpException } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { UsageService } from './usage.service';
-import { UsageRecord } from './usage-record.entity';
-import { UserSummary } from '../summaries/user-summary.entity';
-import { User } from '../users/user.entity';
-import { Organization } from '../organizations/organization.entity';
+import {
+  UserSummary,
+  User,
+  Organization,
+  OrgPlan,
+} from '../../database/entities';
 
 function makeRepo<T extends object>() {
   const findOne = jest.fn();
@@ -26,27 +28,25 @@ const user = { id: 'u1', clerkId: 'clerk_abc', orgId: 'org1' } as User;
 
 const period = new Date().toISOString().slice(0, 7);
 
-const freeOrg = { id: 'org1', plan: 'free' } as Organization;
+const freeOrg = {
+  id: 'org1',
+  plan: OrgPlan.FREE,
+  creditBalance: 10,
+  creditLimit: 10,
+  creditResetPeriod: period,
+} as Organization;
 
 describe('UsageService', () => {
-  it('throws 429 when monthly limit is reached', async () => {
-    const usageRepo = makeRepo<UsageRecord>();
+  it('throws 429 when credits exhausted', async () => {
     const summaryRepo = makeRepo<UserSummary>();
     const userRepo = makeRepo<User>();
     const orgRepo = makeRepo<Organization>();
-    orgRepo.findOne.mockResolvedValue(freeOrg);
-
-    const record = {
-      id: 'rec1',
-      orgId: 'org1',
-      period,
-      count: 10,
-      limit: 10,
-    } as UsageRecord;
-    usageRepo.findOne.mockResolvedValue(record);
+    orgRepo.findOne.mockResolvedValue({
+      ...freeOrg,
+      creditBalance: 0,
+    });
 
     const service = new UsageService(
-      usageRepo.repo,
       summaryRepo.repo,
       userRepo.repo,
       orgRepo.repo,
@@ -56,96 +56,58 @@ describe('UsageService', () => {
     );
   });
 
-  it('increments count when under limit', async () => {
-    const usageRepo = makeRepo<UsageRecord>();
+  it('decrements credit when under limit', async () => {
     const summaryRepo = makeRepo<UserSummary>();
     const userRepo = makeRepo<User>();
     const orgRepo = makeRepo<Organization>();
-    orgRepo.findOne.mockResolvedValue(freeOrg);
+    orgRepo.findOne.mockResolvedValue({ ...freeOrg, creditBalance: 7 });
 
-    const record = {
-      id: 'rec1',
-      orgId: 'org1',
-      period,
-      count: 3,
-      limit: 10,
-    } as UsageRecord;
-    usageRepo.findOne.mockResolvedValue(record);
-    usageRepo.increment.mockResolvedValue({ affected: 1 });
+    const mockExecute = jest.fn().mockResolvedValue({ affected: 1 });
+    const mockWhere = jest.fn().mockReturnValue({ execute: mockExecute });
+    const mockSet = jest.fn().mockReturnValue({ where: mockWhere });
+    const mockUpdate = jest.fn().mockReturnValue({ set: mockSet });
+    orgRepo.createQueryBuilder.mockReturnValue({ update: mockUpdate });
 
     const service = new UsageService(
-      usageRepo.repo,
       summaryRepo.repo,
       userRepo.repo,
       orgRepo.repo,
     );
     await service.checkAndIncrement('org1');
 
-    expect(usageRepo.increment).toHaveBeenCalledWith(
-      { id: 'rec1' },
-      'count',
-      1,
-    );
+    expect(mockExecute).toHaveBeenCalled();
   });
 
-  it('creates a new record when none exists for the period', async () => {
-    const usageRepo = makeRepo<UsageRecord>();
+  it('throws 429 on atomic decrement race', async () => {
     const summaryRepo = makeRepo<UserSummary>();
     const userRepo = makeRepo<User>();
     const orgRepo = makeRepo<Organization>();
-    orgRepo.findOne.mockResolvedValue(freeOrg);
+    orgRepo.findOne.mockResolvedValue({ ...freeOrg, creditBalance: 1 });
 
-    const newRecord = {
-      id: 'rec1',
-      orgId: 'org1',
-      period,
-      count: 0,
-      limit: 10,
-    } as UsageRecord;
-    usageRepo.findOne.mockResolvedValue(null);
-    usageRepo.create.mockReturnValue(newRecord);
-    usageRepo.save.mockResolvedValue(newRecord);
-    usageRepo.increment.mockResolvedValue({ affected: 1 });
+    const mockExecute = jest.fn().mockResolvedValue({ affected: 0 });
+    const mockWhere = jest.fn().mockReturnValue({ execute: mockExecute });
+    const mockSet = jest.fn().mockReturnValue({ where: mockWhere });
+    const mockUpdate = jest.fn().mockReturnValue({ set: mockSet });
+    orgRepo.createQueryBuilder.mockReturnValue({ update: mockUpdate });
 
     const service = new UsageService(
-      usageRepo.repo,
       summaryRepo.repo,
       userRepo.repo,
       orgRepo.repo,
     );
-    await service.checkAndIncrement('org1');
-
-    expect(usageRepo.create).toHaveBeenCalledWith({
-      orgId: 'org1',
-      period,
-      limit: 10,
-    });
-    expect(usageRepo.increment).toHaveBeenCalledWith(
-      { id: 'rec1' },
-      'count',
-      1,
+    await expect(service.checkAndIncrement('org1')).rejects.toThrow(
+      HttpException,
     );
   });
 
   it('returns current usage for authenticated user', async () => {
-    const usageRepo = makeRepo<UsageRecord>();
     const summaryRepo = makeRepo<UserSummary>();
     const userRepo = makeRepo<User>();
     const orgRepo = makeRepo<Organization>();
-    orgRepo.findOne.mockResolvedValue(freeOrg);
-
-    const record = {
-      id: 'rec1',
-      orgId: 'org1',
-      period,
-      count: 5,
-      limit: 10,
-    } as UsageRecord;
     userRepo.findOne.mockResolvedValue(user);
-    usageRepo.findOne.mockResolvedValue(record);
+    orgRepo.findOne.mockResolvedValue({ ...freeOrg, creditBalance: 5 });
 
     const service = new UsageService(
-      usageRepo.repo,
       summaryRepo.repo,
       userRepo.repo,
       orgRepo.repo,
@@ -153,5 +115,38 @@ describe('UsageService', () => {
     const result = await service.getCurrentUsage('clerk_abc');
 
     expect(result).toEqual({ count: 5, limit: 10, period });
+  });
+
+  it('performs lazy reset for free tier in new month', async () => {
+    const summaryRepo = makeRepo<UserSummary>();
+    const userRepo = makeRepo<User>();
+    const orgRepo = makeRepo<Organization>();
+    const staleOrg = {
+      ...freeOrg,
+      creditBalance: 2,
+      creditResetPeriod: '2025-01',
+    };
+    orgRepo.findOne.mockResolvedValue(staleOrg);
+    orgRepo.save.mockResolvedValue(staleOrg);
+
+    const mockExecute = jest.fn().mockResolvedValue({ affected: 1 });
+    const mockWhere = jest.fn().mockReturnValue({ execute: mockExecute });
+    const mockSet = jest.fn().mockReturnValue({ where: mockWhere });
+    const mockUpdate = jest.fn().mockReturnValue({ set: mockSet });
+    orgRepo.createQueryBuilder.mockReturnValue({ update: mockUpdate });
+
+    const service = new UsageService(
+      summaryRepo.repo,
+      userRepo.repo,
+      orgRepo.repo,
+    );
+    await service.checkAndIncrement('org1');
+
+    expect(orgRepo.save).toHaveBeenCalledWith(
+      expect.objectContaining({
+        creditBalance: 10,
+        creditResetPeriod: period,
+      }),
+    );
   });
 });

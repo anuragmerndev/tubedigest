@@ -1,8 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Organization } from '../organizations/organization.entity';
-import { User } from '../users/user.entity';
+import { Organization, User } from '../../database/entities';
 
 export interface UpdateOrgData {
   name?: string;

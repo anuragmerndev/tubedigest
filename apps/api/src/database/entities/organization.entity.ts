@@ -27,6 +27,20 @@ export class Organization {
   @Column({ name: 'dodo_customer_id', nullable: true, type: 'varchar' })
   dodoCustomerId: string | null;
 
+  @Column({ name: 'credit_balance', type: 'int', default: 10 })
+  creditBalance: number;
+
+  @Column({ name: 'credit_limit', type: 'int', default: 10 })
+  creditLimit: number;
+
+  @Column({
+    name: 'credit_reset_period',
+    type: 'varchar',
+    length: 7,
+    nullable: true,
+  })
+  creditResetPeriod: string | null;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 }

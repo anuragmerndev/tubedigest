@@ -6,9 +6,12 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Webhook } from 'standardwebhooks';
-import { Organization, OrgPlan } from '../organizations/organization.entity';
-import { User } from '../users/user.entity';
-import { Subscription } from './subscription.entity';
+import {
+  Organization,
+  OrgPlan,
+  User,
+  Subscription,
+} from '../../database/entities';
 import { DodoClientService } from './dodo-client.service';
 
 interface SubscriptionEventData {
@@ -19,9 +22,19 @@ interface SubscriptionEventData {
   previous_billing_date?: string;
 }
 
+interface CreditEventData {
+  amount: string;
+  balance_after: string;
+  balance_before: string;
+  customer_id: string;
+  credit_entitlement_id: string;
+  is_credit: boolean;
+  transaction_type: string;
+}
+
 interface WebhookEvent {
   type: string;
-  data: SubscriptionEventData;
+  data: SubscriptionEventData | CreditEventData;
 }
 
 @Injectable()
@@ -104,17 +117,29 @@ export class BillingService {
 
     switch (event.type) {
       case 'subscription.active':
-        await this.handleSubscriptionActive(event.data);
+        await this.handleSubscriptionActive(
+          event.data as SubscriptionEventData,
+        );
         break;
       case 'subscription.renewed':
-        await this.handleSubscriptionRenewed(event.data);
+        await this.handleSubscriptionRenewed(
+          event.data as SubscriptionEventData,
+        );
         break;
       case 'subscription.cancelled':
       case 'subscription.expired':
-        await this.handleSubscriptionEnded(event.data);
+        await this.handleSubscriptionEnded(event.data as SubscriptionEventData);
         break;
       case 'subscription.on_hold':
-        await this.handleSubscriptionOnHold(event.data);
+        await this.handleSubscriptionOnHold(
+          event.data as SubscriptionEventData,
+        );
+        break;
+      case 'credit.added':
+        await this.handleCreditAdded(event.data as CreditEventData);
+        break;
+      case 'credit.deducted':
+        await this.handleCreditDeducted(event.data as CreditEventData);
         break;
       default:
         break;
@@ -145,6 +170,8 @@ export class BillingService {
     );
 
     org.plan = OrgPlan.PRO;
+    org.creditLimit = 100;
+    org.creditBalance = 100;
     await this.orgRepo.save(org);
   }
 
@@ -177,6 +204,8 @@ export class BillingService {
     const org = await this.orgRepo.findOne({ where: { id: sub.orgId } });
     if (org) {
       org.plan = OrgPlan.FREE;
+      org.creditLimit = 10;
+      org.creditBalance = Math.min(org.creditBalance, 10);
       await this.orgRepo.save(org);
     }
   }
@@ -192,4 +221,30 @@ export class BillingService {
     sub.status = 'on_hold';
     await this.subscriptionRepo.save(sub);
   }
+
+  private async handleCreditAdded(data: CreditEventData): Promise<void> {
+    const org = await this.orgRepo.findOne({
+      where: { dodoCustomerId: data.customer_id },
+    });
+    if (!org) return;
+
+    const balance = parseInt(data.balance_after, 10);
+    org.creditBalance = balance;
+    // Cycle reset: full balance equals the limit
+    if (balance > org.creditLimit) {
+      org.creditLimit = balance;
+    }
+    await this.orgRepo.save(org);
+  }
+
+  private async handleCreditDeducted(data: CreditEventData): Promise<void> {
+    const org = await this.orgRepo.findOne({
+      where: { dodoCustomerId: data.customer_id },
+    });
+    if (!org) return;
+
+    org.creditBalance = parseInt(data.balance_after, 10);
+    await this.orgRepo.save(org);
+  }
+
 }

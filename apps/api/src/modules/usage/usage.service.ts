@@ -6,21 +6,16 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { UsageRecord } from './usage-record.entity';
-import { UserSummary } from '../summaries/user-summary.entity';
-import { User } from '../users/user.entity';
-import { Organization } from '../organizations/organization.entity';
-
-const PLAN_LIMITS: Record<string, number> = {
-  free: 10,
-  pro: 100,
-};
+import {
+  UserSummary,
+  User,
+  Organization,
+  OrgPlan,
+} from '../../database/entities';
 
 @Injectable()
 export class UsageService {
   constructor(
-    @InjectRepository(UsageRecord)
-    private readonly usageRepo: Repository<UsageRecord>,
     @InjectRepository(UserSummary)
     private readonly userSummaryRepo: Repository<UserSummary>,
     @InjectRepository(User)
@@ -33,38 +28,43 @@ export class UsageService {
     return new Date().toISOString().slice(0, 7); // "YYYY-MM"
   }
 
-  private async getOrCreate(orgId: string): Promise<UsageRecord> {
-    const period = this.currentPeriod();
-    const existing = await this.usageRepo.findOne({ where: { orgId, period } });
-    if (existing) {
-      // Sync limit if plan changed
-      const limit = await this.getLimitForOrg(orgId);
-      if (existing.limit !== limit) {
-        existing.limit = limit;
-        await this.usageRepo.save(existing);
-      }
-      return existing;
+  /** Free tier lazy reset: reset credits on first usage of new month */
+  private async maybeLazyReset(org: Organization): Promise<void> {
+    const currentMonth = this.currentPeriod();
+    if (org.plan === OrgPlan.FREE && org.creditResetPeriod !== currentMonth) {
+      org.creditBalance = org.creditLimit;
+      org.creditResetPeriod = currentMonth;
+      await this.orgRepo.save(org);
     }
-    const limit = await this.getLimitForOrg(orgId);
-    const record = this.usageRepo.create({ orgId, period, limit });
-    return this.usageRepo.save(record);
   }
 
-  private async getLimitForOrg(orgId: string): Promise<number> {
-    const org = await this.orgRepo.findOne({ where: { id: orgId } });
-    return PLAN_LIMITS[org?.plan ?? 'free'] ?? PLAN_LIMITS.free;
-  }
-
-  /** Check limit then atomically increment. Throws 429 if limit reached. */
+  /** Check credit balance then atomically decrement. Throws 429 if no credits. */
   async checkAndIncrement(orgId: string): Promise<void> {
-    const record = await this.getOrCreate(orgId);
-    if (record.count >= record.limit) {
+    const org = await this.orgRepo.findOne({ where: { id: orgId } });
+    if (!org) throw new NotFoundException('Organisation not found');
+
+    await this.maybeLazyReset(org);
+
+    if (org.creditBalance <= 0) {
       throw new HttpException(
         'Monthly summary limit reached',
         HttpStatus.TOO_MANY_REQUESTS,
       );
     }
-    await this.usageRepo.increment({ id: record.id }, 'count', 1);
+
+    const result = await this.orgRepo
+      .createQueryBuilder()
+      .update(Organization)
+      .set({ creditBalance: () => 'credit_balance - 1' })
+      .where('id = :id AND credit_balance > 0', { id: orgId })
+      .execute();
+
+    if (result.affected === 0) {
+      throw new HttpException(
+        'Monthly summary limit reached',
+        HttpStatus.TOO_MANY_REQUESTS,
+      );
+    }
   }
 
   async getCurrentUsage(
@@ -73,8 +73,17 @@ export class UsageService {
     const user = await this.userRepo.findOne({ where: { clerkId } });
     if (!user?.orgId)
       throw new NotFoundException('User or organisation not found');
-    const record = await this.getOrCreate(user.orgId);
-    return { count: record.count, limit: record.limit, period: record.period };
+    
+    const org = await this.orgRepo.findOne({ where: { id: user.orgId } });
+    if (!org) throw new NotFoundException('Organisation not found');
+
+    await this.maybeLazyReset(org);
+
+    return {
+      count: org.creditLimit - org.creditBalance,
+      limit: org.creditLimit,
+      period: this.currentPeriod(),
+    };
   }
 
   async getDailyUsage(

@@ -1,5 +1,5 @@
 import { IsEmail, IsEnum } from 'class-validator';
-import { UserRole } from '../../users/user.entity';
+import { UserRole } from '../../../database/entities';
 
 export class InviteMemberDto {
   @IsEmail()

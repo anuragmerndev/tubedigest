@@ -1,9 +1,11 @@
 import { SummariesService } from './summaries.service';
 import { Repository } from 'typeorm';
-import { Video } from './video.entity';
-import { UserSummary } from './user-summary.entity';
-import { User } from '../users/user.entity';
-import { Organization } from '../organizations/organization.entity';
+import {
+  Video,
+  UserSummary,
+  User,
+  Organization,
+} from '../../database/entities';
 import { UnprocessableEntityException } from '@nestjs/common';
 import { UsageService } from '../usage/usage.service';
 import { DodoClientService } from '../billing/dodo-client.service';

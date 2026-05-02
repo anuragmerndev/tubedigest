@@ -7,12 +7,14 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import OpenAI from 'openai';
-import { Video } from './video.entity';
-import { UserSummary } from './user-summary.entity';
-import { User } from '../users/user.entity';
+import {
+  Video,
+  UserSummary,
+  User,
+  Organization,
+} from '../../database/entities';
 import { UsageService } from '../usage/usage.service';
 import { DodoClientService } from '../billing/dodo-client.service';
-import { Organization } from '../organizations/organization.entity';
 import { TranscriptService } from './transcript.service';
 
 const MAX_CHARS = 16000; // ~4000 tokens

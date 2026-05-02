@@ -1,6 +1,6 @@
 import { AuthService } from './auth.service';
 import { Repository } from 'typeorm';
-import { User, UserRole } from '../users/user.entity';
+import { User, UserRole } from '../../database/entities';
 
 function makeRepo() {
   const findOne = jest.fn();

@@ -7,8 +7,12 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { createClerkClient } from '@clerk/backend';
-import { User, UserRole } from '../users/user.entity';
-import { Invitation, InvitationStatus } from '../invitations/invitation.entity';
+import {
+  User,
+  UserRole,
+  Invitation,
+  InvitationStatus,
+} from '../../database/entities';
 
 @Injectable()
 export class MembersService {

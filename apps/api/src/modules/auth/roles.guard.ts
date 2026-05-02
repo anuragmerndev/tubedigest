@@ -7,7 +7,7 @@ import {
 import { Reflector } from '@nestjs/core';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { User, UserRole } from '../users/user.entity';
+import { User, UserRole } from '../../database/entities';
 import { ROLES_KEY } from './roles.decorator';
 
 interface ClerkPayload {

@@ -55,10 +55,21 @@ function IconSparkle({ size = 12 }: { size?: number }) {
   )
 }
 
+function formatDuration(seconds: number): string {
+  const h = Math.floor(seconds / 3600)
+  const m = Math.floor((seconds % 3600) / 60)
+  const s = seconds % 60
+  if (h > 0) return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
+  return `${m}:${String(s).padStart(2, '0')}`
+}
+
 function HistoryRow({ summary, last, index }: { summary: UserSummary; last: boolean; index: number }) {
-  const videoUrl = summary.video?.url ?? ''
+  const video = summary.video
+  const videoUrl = video?.url ?? ''
   const videoId = extractVideoId(videoUrl)
-  const summaryText = summary.video?.summary ?? ''
+  const title = video?.title || videoId
+  const channel = video?.channelName || 'youtube.com'
+  const summaryText = video?.summary ?? ''
   const tldr = summaryText.length > 120 ? summaryText.slice(0, 120) + '…' : summaryText
   const { date, time } = formatDate(summary.createdAt)
   const seed = index % 5
@@ -73,10 +84,15 @@ function HistoryRow({ summary, last, index }: { summary: UserSummary; last: bool
     >
       {/* Video col */}
       <div className="flex gap-3 items-center min-w-0">
-        <VideoThumb seed={seed} className="w-[84px] shrink-0 rounded-md" />
+        <VideoThumb
+          src={video?.thumbnailUrl}
+          seed={seed}
+          duration={video?.duration ? formatDuration(video.duration) : undefined}
+          className="w-[84px] shrink-0 rounded-md"
+        />
         <div className="min-w-0">
           <div className="text-[13px] font-medium truncate text-td-text">
-            {videoId}
+            {title}
           </div>
           {tldr && (
             <div className="text-[11.5px] text-td-text-muted mt-1 line-clamp-2 leading-snug">
@@ -85,7 +101,7 @@ function HistoryRow({ summary, last, index }: { summary: UserSummary; last: bool
           )}
           <div className="flex items-center gap-1.5 mt-1.5">
             <span className="text-[11px] text-td-text-dim font-mono-td">
-              youtube.com
+              {channel}
             </span>
           </div>
         </div>

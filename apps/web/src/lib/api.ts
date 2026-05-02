@@ -50,6 +50,10 @@ export interface Video {
   url: string
   transcript: string | null
   summary: string | null
+  title: string | null
+  thumbnailUrl: string | null
+  channelName: string | null
+  duration: number | null
   createdAt: string
 }
 
@@ -70,6 +74,10 @@ export interface SummaryResult {
   url: string
   summary: string
   truncated: boolean
+  title?: string
+  thumbnailUrl?: string
+  channelName?: string
+  duration?: number
 }
 
 export interface SummaryList {

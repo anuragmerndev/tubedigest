@@ -31,7 +31,7 @@ export function Shell({
         usageLimit={usageLimit}
       />
       <div className="flex-1 flex flex-col min-w-0">
-        <Topbar crumbs={topbarCrumbs} actions={topbarActions} userName={userName} />
+        <Topbar crumbs={topbarCrumbs} actions={topbarActions} userName={userName} orgPlan={orgPlan} />
         <main className="flex-1 overflow-y-auto td-scroll">{children}</main>
       </div>
     </div>

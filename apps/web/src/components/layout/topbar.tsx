@@ -2,17 +2,21 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { useClerk } from '@clerk/nextjs'
-import { ChevronRight, LogOut } from 'lucide-react'
+import { ChevronRight, LogOut, Zap } from 'lucide-react'
 import { Avatar } from '@/components/ui/avatar'
+import { Button } from '@/components/ui/button'
+import { useBillingCheckout } from '@/hooks/use-api'
 
 interface TopbarProps {
   crumbs: string[]
   actions?: React.ReactNode
   userName?: string
+  orgPlan?: string
 }
 
-export function Topbar({ crumbs, actions, userName = 'User' }: TopbarProps) {
+export function Topbar({ crumbs, actions, userName = 'User', orgPlan }: TopbarProps) {
   const { signOut } = useClerk()
+  const { checkout, loading: checkoutLoading } = useBillingCheckout()
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
@@ -49,6 +53,23 @@ export function Topbar({ crumbs, actions, userName = 'User' }: TopbarProps) {
 
       {/* Actions */}
       {actions && <div className="flex items-center gap-2">{actions}</div>}
+
+      {/* Upgrade button */}
+      {orgPlan !== 'pro' && (
+        <Button
+          size="sm"
+          disabled={checkoutLoading}
+          onClick={async () => {
+            try {
+              const url = await checkout()
+              window.open(url, '_blank', 'noopener,noreferrer')
+            } catch { /* noop */ }
+          }}
+        >
+          <Zap size={12} />
+          Upgrade · $10/mo
+        </Button>
+      )}
 
       {/* Divider + Avatar dropdown */}
       <div className="w-px h-5 bg-border" />

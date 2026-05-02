@@ -77,9 +77,21 @@ export default function SummaryDetailPage({
   const video = summary.video
   const videoUrl = video?.url ?? ''
   const videoId = extractVideoId(videoUrl)
+  const title = video?.title || videoId
+  const channel = video?.channelName || 'youtube.com'
   const summaryText = video?.summary ?? ''
   const { date, time } = formatDate(summary.createdAt)
   const seed = videoId.charCodeAt(0) % 5
+  const durationStr = video?.duration
+    ? (() => {
+        const h = Math.floor(video.duration / 3600)
+        const m = Math.floor((video.duration % 3600) / 60)
+        const s = video.duration % 60
+        return h > 0
+          ? `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
+          : `${m}:${String(s).padStart(2, '0')}`
+      })()
+    : undefined
 
   return (
     <div className="p-6 pb-10" style={{ maxWidth: 1180 }}>
@@ -132,12 +144,12 @@ export default function SummaryDetailPage({
         <div className="p-6" style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: 28 }}>
           {/* Left: video card */}
           <div>
-            <VideoThumb seed={seed} />
+            <VideoThumb src={video?.thumbnailUrl} seed={seed} duration={durationStr} />
             <div className="text-[13.5px] font-medium mt-3 leading-snug tracking-[-0.01em] break-all">
-              {videoId}
+              {title}
             </div>
             <div className="text-[11.5px] text-td-text-muted mt-1.5">
-              youtube.com
+              {channel}
             </div>
             <div className="flex gap-1.5 mt-3 flex-wrap">
               <Badge tone="neutral">

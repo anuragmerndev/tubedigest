@@ -1,6 +1,10 @@
+'use client'
+
 import { cn } from '@/lib/utils'
+import { useState } from 'react'
 
 interface VideoThumbProps {
+  src?: string | null
   duration?: string
   seed?: number
   className?: string
@@ -14,21 +18,35 @@ const HUES: [number, number][] = [
   [260, 300],
 ]
 
-export function VideoThumb({ duration, seed = 0, className }: VideoThumbProps) {
+export function VideoThumb({ src, duration, seed = 0, className }: VideoThumbProps) {
+  const [imgError, setImgError] = useState(false)
   const [h1, h2] = HUES[seed % HUES.length]
+  const showImg = src && !imgError
 
   return (
     <div
       className={cn('relative overflow-hidden rounded-lg border border-border w-full', className)}
       style={{
         aspectRatio: '16/9',
-        background: `
-          radial-gradient(ellipse at 20% 10%, hsl(${h1} 70% 50%) 0%, transparent 60%),
-          radial-gradient(ellipse at 80% 90%, hsl(${h2} 70% 45%) 0%, transparent 55%),
-          linear-gradient(135deg, hsl(${h1} 40% 18%), hsl(${h2} 40% 12%))
-        `,
+        ...(!showImg
+          ? {
+              background: `
+                radial-gradient(ellipse at 20% 10%, hsl(${h1} 70% 50%) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 90%, hsl(${h2} 70% 45%) 0%, transparent 55%),
+                linear-gradient(135deg, hsl(${h1} 40% 18%), hsl(${h2} 40% 12%))
+              `,
+            }
+          : {}),
       }}
     >
+      {showImg && (
+        <img
+          src={src}
+          alt=""
+          className="absolute inset-0 w-full h-full object-cover"
+          onError={() => setImgError(true)}
+        />
+      )}
       {/* scanlines */}
       <div
         className="absolute inset-0"

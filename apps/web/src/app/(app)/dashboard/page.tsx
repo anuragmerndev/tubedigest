@@ -181,6 +181,7 @@ export default function DashboardPage() {
                 const isLast = i === recentSummaries.length - 1
                 const videoUrl = s.video?.url ?? ''
                 const videoId = extractVideoId(videoUrl)
+                const title = s.video?.title || videoId
                 const seed = i % 5
 
                 return (
@@ -189,12 +190,13 @@ export default function DashboardPage() {
                     className={`flex items-center gap-3 px-4 py-3 ${!isLast ? 'border-b border-border' : ''}`}
                   >
                     <VideoThumb
+                      src={s.video?.thumbnailUrl}
                       seed={seed}
                       className="w-14 shrink-0 rounded-md"
                     />
                     <div className="min-w-0 flex-1">
                       <div className="text-[12.5px] font-medium truncate text-td-text">
-                        {videoId}
+                        {title}
                       </div>
                       <div className="text-[11px] text-td-text-dim mt-0.5">
                         {timeAgo(s.createdAt)}

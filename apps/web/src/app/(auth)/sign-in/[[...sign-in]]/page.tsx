@@ -93,7 +93,7 @@ export default function SignInPage() {
       <p className="text-[13.5px] text-td-text-muted mb-6">Sign in to your TubeDigest account.</p>
 
       {/* Google OAuth */}
-      <button
+      {/* <button
         type="button"
         onClick={handleGoogleSignIn}
         disabled={oauthLoading || !isReady}
@@ -101,7 +101,7 @@ export default function SignInPage() {
       >
         <GoogleIcon />
         {oauthLoading ? 'Redirecting…' : 'Continue with Google'}
-      </button>
+      </button> */}
 
       <div className="flex items-center gap-3 mb-5">
         <div className="flex-1 h-px bg-border" />

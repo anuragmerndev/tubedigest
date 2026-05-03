@@ -226,7 +226,7 @@ export default function SignUpPage() {
               </p>
 
               {/* OAuth buttons */}
-              <div className="flex flex-col gap-2 mb-5">
+              {/* <div className="flex flex-col gap-2 mb-5">
                 <button
                   type="button"
                   onClick={() => handleOAuth('oauth_google')}
@@ -245,7 +245,7 @@ export default function SignUpPage() {
                   <GitHubIcon />
                   {oauthLoading === 'github' ? 'Redirecting…' : 'Continue with GitHub'}
                 </button>
-              </div>
+              </div> */}
 
               {/* Divider */}
               <div className="flex items-center gap-3 mb-5">

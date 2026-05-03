@@ -38,7 +38,7 @@ export class AuthGuard implements CanActivate {
     try {
       const payload = await verifyToken(token, {
         secretKey: process.env.CLERK_SECRET_KEY,
-        clockSkewInMs: 3_600_000, // 1 hour tolerance for dev testing
+        clockSkewInMs: 30_000, // 30 seconds tolerance
       });
       request.clerkPayload = payload;
       return true;

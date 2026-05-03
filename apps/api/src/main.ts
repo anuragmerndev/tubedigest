@@ -26,19 +26,22 @@ async function bootstrap() {
     new ValidationPipe({
       whitelist: true,
       forbidNonWhitelisted: true,
+      transform: true,
     }),
   );
 
   app.useGlobalFilters(new HttpExceptionFilter());
 
-  const swaggerConfig = new DocumentBuilder()
-    .setTitle('TubeDigest API')
-    .setDescription('YouTube Video Summarizer — multi-tenant SaaS API')
-    .setVersion('1.0')
-    .addBearerAuth()
-    .build();
-  const document = SwaggerModule.createDocument(app, swaggerConfig);
-  SwaggerModule.setup('api/docs', app, document);
+  if (process.env.NODE_ENV !== 'production') {
+    const swaggerConfig = new DocumentBuilder()
+      .setTitle('TubeDigest API')
+      .setDescription('YouTube Video Summarizer — multi-tenant SaaS API')
+      .setVersion('1.0')
+      .addBearerAuth()
+      .build();
+    const document = SwaggerModule.createDocument(app, swaggerConfig);
+    SwaggerModule.setup('api/docs', app, document);
+  }
 
   const port = process.env.PORT ?? 3001;
   await app.listen(port);

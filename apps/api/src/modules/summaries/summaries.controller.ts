@@ -13,6 +13,7 @@ import { ApiBearerAuth } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { SummariesService } from './summaries.service';
 import { SubmitSummaryDto } from './dto/submit-summary.dto';
+import { ListSummariesQueryDto } from './dto/list-summaries-query.dto';
 
 interface ClerkRequest {
   clerkPayload: { sub: string };
@@ -33,13 +34,12 @@ export class SummariesController {
   @Get()
   listSummaries(
     @Req() req: ClerkRequest,
-    @Query('page') page?: string,
-    @Query('limit') limit?: string,
+    @Query() query: ListSummariesQueryDto,
   ) {
     return this.summariesService.listSummaries(
       req.clerkPayload.sub,
-      page ? parseInt(page, 10) : 1,
-      limit ? parseInt(limit, 10) : 20,
+      query.page,
+      query.limit,
     );
   }
 

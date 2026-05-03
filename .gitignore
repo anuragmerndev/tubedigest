@@ -17,6 +17,10 @@ out/
 # turbo
 .turbo/
 
+# internal dev docs
+CLAUDE.md
+docs/superpowers/
+
 # misc
 .DS_Store
 *.log

@@ -3,7 +3,6 @@ import {
   ArrowRight,
   Sparkles,
   Link2,
-  Play,
   Building2,
   CreditCard,
   Zap,
@@ -16,6 +15,7 @@ import { buttonVariants } from '@/components/ui/button'
 import { HeroInput } from './hero-input'
 import { cn } from '@/lib/utils'
 import { VideoThumb } from '@/components/ui/video-thumb'
+import { Reveal, Counter } from './animations'
 
 // ─── Nav ──────────────────────────────────────────────────────────────────────
 
@@ -90,9 +90,9 @@ function MiniSummarizerPreview() {
 function HeroA() {
   return (
     <section className="py-[80px] px-8 pb-[100px] relative overflow-hidden border-b border-border">
-      {/* Purple glow */}
+      {/* Drifting aurora */}
       <div
-        className="absolute inset-0 pointer-events-none"
+        className="td-aurora absolute inset-0 pointer-events-none"
         style={{ backgroundImage: 'radial-gradient(circle at center, rgba(139,92,246,0.12), transparent 60%)' }}
       />
       {/* Grid */}
@@ -107,14 +107,17 @@ function HeroA() {
       />
 
       <div className="max-w-[1120px] mx-auto relative text-center">
-        <Badge tone="primary" className="mb-[22px] inline-flex items-center gap-1.5">
-          <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+        <div className="td-enter mb-[22px]" style={{ animationDelay: '0ms' }}>
+        <Badge tone="primary" className="inline-flex items-center gap-1.5">
+          <span className="td-dot-pulse w-1.5 h-1.5 rounded-full bg-primary inline-block" />
           New · Team workspaces &amp; usage-based billing
         </Badge>
+        </div>
 
         <h1
-          className="text-[72px] leading-[1.02] tracking-[-0.035em] font-semibold mb-[22px]"
+          className="td-enter text-[72px] leading-[1.02] tracking-[-0.035em] font-semibold mb-[22px]"
           style={{
+            animationDelay: '80ms',
             background: 'linear-gradient(180deg, #fff 0%, #9B9BA6 130%)',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
@@ -125,24 +128,24 @@ function HeroA() {
           video in seconds.
         </h1>
 
-        <p className="text-[18px] leading-relaxed text-td-text-muted max-w-[580px] mx-auto mb-9 tracking-[-0.005em]">
+        <p className="td-enter text-[18px] leading-relaxed text-td-text-muted max-w-[580px] mx-auto mb-9 tracking-[-0.005em]" style={{ animationDelay: '180ms' }}>
           TubeDigest reads videos for you. Paste a link, get a structured summary
           with chapters, timestamps, and key takeaways — ready to share with your team.
         </p>
 
         {/* Inline summarizer CTA */}
-        <div className="max-w-[620px] mx-auto mb-4 relative">
+        <div className="td-enter max-w-[620px] mx-auto mb-4 relative" style={{ animationDelay: '280ms' }}>
           <HeroInput />
         </div>
 
-        <div className="flex justify-center gap-4 text-td-text-dim text-[12px]">
+        <div className="td-enter flex justify-center gap-4 text-td-text-dim text-[12px]" style={{ animationDelay: '380ms' }}>
           <span>&#10003; No credit card</span>
           <span>&#10003; 10 free summaries/mo</span>
           <span>&#10003; SOC 2 ready</span>
         </div>
 
         {/* Product preview */}
-        <div className="mt-[60px] relative">
+        <Reveal delay={120} style={{ marginTop: 60 }} className="relative">
           <div
             className="absolute pointer-events-none"
             style={{
@@ -166,28 +169,31 @@ function HeroA() {
             </div>
             <MiniSummarizerPreview />
           </div>
-        </div>
+        </Reveal>
       </div>
     </section>
   )
 }
 
-// ─── Logo strip ───────────────────────────────────────────────────────────────
+// ─── Logo strip (marquee) ────────────────────────────────────────────────────
 
 function LogoStrip() {
   const names = ['NOTION', 'LINEAR', 'RETOOL', 'RAMP', 'VERCEL', 'FIGMA', 'ARC']
+  const loop = [...names, ...names]
   return (
     <div className="py-10 px-8 border-b border-border">
       <div className="max-w-[1120px] mx-auto text-center">
-        <div className="font-mono-td text-[12px] text-td-text-dim uppercase tracking-[0.08em] mb-5">
+        <Reveal className="font-mono-td text-[12px] text-td-text-dim uppercase tracking-[0.08em] mb-5">
           Teams digesting video with TubeDigest
-        </div>
-        <div className="flex justify-between gap-5 opacity-55">
-          {names.map((n) => (
-            <div key={n} className="text-[18px] font-semibold tracking-[0.04em] text-td-text-muted">
-              {n}
-            </div>
-          ))}
+        </Reveal>
+        <div className="td-marquee-mask overflow-hidden opacity-55">
+          <div className="td-marquee-track">
+            {loop.map((n, i) => (
+              <div key={i} className="text-[18px] font-semibold tracking-[0.04em] text-td-text-muted shrink-0">
+                {n}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>
@@ -239,7 +245,7 @@ function FeatureGrid() {
   return (
     <section className="py-[100px] px-8 border-b border-border">
       <div className="max-w-[1120px] mx-auto">
-        <div className="text-center mb-[60px]">
+        <Reveal className="text-center mb-[60px]">
           <Badge className="mb-4">Features</Badge>
           <h2 className="text-[44px] tracking-[-0.03em] font-semibold mb-3.5">
             Built for the way your team actually works
@@ -247,13 +253,13 @@ function FeatureGrid() {
           <p className="text-[16px] text-td-text-muted max-w-[520px] mx-auto">
             Not just a summary tool. A shared knowledge layer for every video your team has ever watched.
           </p>
-        </div>
+        </Reveal>
         <div className="grid grid-cols-3 border-t border-l border-border">
-          {FEATURES.map((f) => {
+          {FEATURES.map((f, i) => {
             const Icon = f.icon
             return (
-              <div key={f.title} className="p-7 border-r border-b border-border bg-background">
-                <div className="w-8 h-8 rounded-[8px] grid place-items-center bg-td-primary-dim text-primary border border-td-primary-border mb-4">
+              <Reveal key={f.title} delay={i * 70} className="td-feature-card p-7 border-r border-b border-border bg-background">
+                <div className="td-feature-icon w-8 h-8 rounded-[8px] grid place-items-center bg-td-primary-dim text-primary border border-td-primary-border mb-4">
                   <Icon size={16} />
                 </div>
                 <div className="text-[15px] font-medium mb-1.5">{f.title}</div>
@@ -261,7 +267,7 @@ function FeatureGrid() {
                 <div className="font-mono-td text-[11px] text-td-text-dim px-2 py-1 bg-card border border-border rounded-[4px] inline-block">
                   {f.code}
                 </div>
-              </div>
+              </Reveal>
             )
           })}
         </div>
@@ -283,23 +289,38 @@ function HowItWorks() {
   return (
     <section className="py-[100px] px-8 border-b border-border">
       <div className="max-w-[1120px] mx-auto">
-        <div className="mb-[50px]">
+        <Reveal className="mb-[50px]">
           <Badge className="mb-3.5">How it works</Badge>
           <h2 className="text-[36px] tracking-[-0.025em] font-semibold max-w-[600px]">
             From video link to team-ready summary in under ten seconds.
           </h2>
-        </div>
-        <div
-          className="grid grid-cols-4 gap-px bg-border border border-border rounded-[10px] overflow-hidden"
-        >
-          {STEPS.map((s) => (
-            <div key={s.n} className="py-7 px-6 bg-background">
+        </Reveal>
+        <div className="grid grid-cols-4 gap-px bg-border border border-border rounded-[10px] overflow-hidden">
+          {STEPS.map((s, i) => (
+            <Reveal key={s.n} delay={i * 90} className="py-7 px-6 bg-background">
               <div className="font-mono-td text-[11px] text-primary mb-[18px]">{s.n}</div>
               <div className="text-[17px] font-medium mb-1.5 tracking-[-0.01em]">{s.t}</div>
               <div className="text-[13px] text-td-text-muted leading-relaxed">{s.d}</div>
-            </div>
+            </Reveal>
           ))}
         </div>
+
+        {/* Animated stats row */}
+        <Reveal
+          className="mt-7 grid grid-cols-4 py-5 px-6 rounded-[10px] border border-border bg-card"
+        >
+          {[
+            { v: <Counter to={4.2} decimals={1} suffix="s" />, l: 'Median time to summary' },
+            { v: <Counter to={1200000} suffix="+" />, l: 'Videos summarized' },
+            { v: <Counter to={98.4} decimals={1} suffix="%" />, l: 'Cache hit on shared queues' },
+            { v: <Counter to={420} suffix=" teams" />, l: 'Workspaces on Pro' },
+          ].map((s, i) => (
+            <div key={i} className="px-4" style={{ borderRight: i < 3 ? '1px solid var(--border)' : 'none' }}>
+              <div className="text-[26px] font-semibold tracking-[-0.02em]">{s.v}</div>
+              <div className="text-[12px] text-td-text-muted mt-1">{s.l}</div>
+            </div>
+          ))}
+        </Reveal>
       </div>
     </section>
   )
@@ -365,7 +386,7 @@ function PricingSection() {
   return (
     <section id="pricing" className="py-[100px] px-8 border-b border-border">
       <div className="max-w-[1120px] mx-auto">
-        <div className="text-center mb-14">
+        <Reveal className="text-center mb-14">
           <Badge className="mb-3.5">Pricing</Badge>
           <h2 className="text-[44px] tracking-[-0.03em] font-semibold mb-3.5">
             Priced like a utility, not a seat tax.
@@ -373,47 +394,50 @@ function PricingSection() {
           <p className="text-[16px] text-td-text-muted">
             Pay for what you summarize. Every summary your team&apos;s ever run is cached across your org.
           </p>
-        </div>
+        </Reveal>
         <div className="grid grid-cols-3 gap-3.5">
-          {TIERS.map((t) => (
-            <div
-              key={t.name}
-              className="rounded-xl p-7 relative"
-              style={{
-                background: t.featured
-                  ? 'linear-gradient(180deg, rgba(139,92,246,0.06), transparent 50%), var(--card)'
-                  : 'var(--card)',
-                border: t.featured ? '1px solid var(--td-primary-border)' : '1px solid var(--border)',
-                boxShadow: t.featured ? '0 0 40px rgba(139,92,246,0.15)' : 'none',
-              }}
-            >
-              {t.featured && (
-                <div className="absolute top-[-1px] right-5 bg-primary text-white text-[11px] font-medium px-2.5 py-1 rounded-b-[6px]">
-                  Most popular
-                </div>
-              )}
-              <div className="text-[15px] font-medium mb-2">{t.name}</div>
-              <div className="flex items-baseline gap-1.5 mb-2">
-                <div className="text-[44px] font-semibold tracking-[-0.03em]">{t.price}</div>
-                <div className="text-[13px] text-td-text-muted">{t.period}</div>
-              </div>
-              <div className="text-[13px] text-td-text-muted mb-5 min-h-10 leading-relaxed">{t.desc}</div>
-              <Link
-                href={t.href}
-                className={cn(buttonVariants({ variant: t.featured ? 'default' : 'outline', size: 'lg' }), 'w-full justify-center')}
+          {TIERS.map((t, i) => (
+            <Reveal key={t.name} delay={i * 90} className="td-pricing-card">
+              <div
+                className="rounded-xl p-7 relative"
+                style={{
+                  background: t.featured
+                    ? 'linear-gradient(180deg, rgba(139,92,246,0.06), transparent 50%), var(--card)'
+                    : 'var(--card)',
+                  border: t.featured ? '1px solid var(--td-primary-border)' : '1px solid var(--border)',
+                  boxShadow: t.featured ? '0 0 40px rgba(139,92,246,0.15)' : 'none',
+                }}
               >
-                {t.cta}
-              </Link>
-              <div className="h-px bg-border my-[22px]" />
-              <div className="flex flex-col gap-2.5">
-                {t.features.map((f) => (
-                  <div key={f} className="flex items-center gap-2.5 text-[13px]">
-                    <Check size={14} className="text-primary shrink-0" />
-                    {f}
+                {t.featured && (
+                  <div className="absolute top-[-1px] right-5 bg-primary text-white text-[11px] font-medium px-2.5 py-1 rounded-b-[6px]">
+                    Most popular
                   </div>
-                ))}
+                )}
+                <div className="text-[15px] font-medium mb-2">{t.name}</div>
+                <div className="flex items-baseline gap-1.5 mb-2">
+                  <div className="text-[44px] font-semibold tracking-[-0.03em]">{t.price}</div>
+                  <div className="text-[13px] text-td-text-muted">{t.period}</div>
+                </div>
+                <div className="text-[13px] text-td-text-muted mb-5 min-h-10 leading-relaxed">{t.desc}</div>
+                <div className={t.featured ? 'td-shimmer-host td-btn-anim' : 'td-btn-anim'}>
+                  <Link
+                    href={t.href}
+                    className={cn(buttonVariants({ variant: t.featured ? 'default' : 'outline', size: 'lg' }), 'w-full justify-center')}
+                  >
+                    {t.cta}
+                  </Link>
+                </div>
+                <div className="h-px bg-border my-[22px]" />
+                <div className="flex flex-col gap-2.5">
+                  {t.features.map((f) => (
+                    <div key={f} className="flex items-center gap-2.5 text-[13px]">
+                      <Check size={14} className="text-primary shrink-0" />
+                      {f}
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
+            </Reveal>
           ))}
         </div>
       </div>
@@ -426,7 +450,7 @@ function PricingSection() {
 function FinalCTA() {
   return (
     <section className="py-[100px] px-8 border-b border-border">
-      <div
+      <Reveal
         className="max-w-[920px] mx-auto rounded-2xl py-[60px] px-10 text-center border border-td-primary-border"
         style={{
           background: 'radial-gradient(ellipse at top, rgba(139,92,246,0.25), transparent 60%), var(--card)',
@@ -439,14 +463,18 @@ function FinalCTA() {
           10 free summaries. No credit card. Your team will thank you.
         </p>
         <div className="flex gap-2.5 justify-center">
-          <Link href="/sign-up" className={cn(buttonVariants({ size: 'xl' }), 'gap-2')}>
-            Start for free <ArrowRight size={14} />
-          </Link>
-          <Link href="#" className={buttonVariants({ size: 'xl', variant: 'outline' })}>
-            Book a demo
-          </Link>
+          <div className="td-shimmer-host td-btn-anim">
+            <Link href="/sign-up" className={cn(buttonVariants({ size: 'xl' }), 'gap-2')}>
+              Start for free <ArrowRight size={14} />
+            </Link>
+          </div>
+          <div className="td-btn-anim">
+            <Link href="#" className={buttonVariants({ size: 'xl', variant: 'outline' })}>
+              Book a demo
+            </Link>
+          </div>
         </div>
-      </div>
+      </Reveal>
     </section>
   )
 }

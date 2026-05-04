@@ -24,6 +24,20 @@ export interface Member {
   createdAt: string
 }
 
+export interface SyncUserResult {
+  id: string
+  clerkId: string
+  email: string
+  role: UserRole | null
+  orgId: string | null
+  invitation: {
+    id: string
+    orgName: string
+    orgSlug: string
+    role: UserRole
+  } | null
+}
+
 export interface Invitation {
   id: string
   orgId: string
@@ -143,7 +157,7 @@ export async function apiFetch<T>(
 export const api = {
   // Auth
   syncUser: (token: string) =>
-    apiFetch<Member>('/api/auth/sync', token, { method: 'POST' }),
+    apiFetch<SyncUserResult>('/api/auth/sync', token, { method: 'POST' }),
 
   // Onboarding
   createOrg: (token: string, name: string) =>
@@ -183,6 +197,13 @@ export const api = {
     apiFetch<void>(`/api/invitations/${invitationId}`, token, {
       method: 'DELETE',
     }),
+
+  acceptInvitation: (token: string, invitationId: string) =>
+    apiFetch<{ orgId: string; orgName: string; orgSlug: string }>(
+      `/api/invitations/${invitationId}/accept`,
+      token,
+      { method: 'POST' },
+    ),
 
   // Summaries
   submitSummary: (token: string, url: string) =>

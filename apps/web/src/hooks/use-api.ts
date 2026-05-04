@@ -11,6 +11,7 @@ import {
   type Subscription,
   type SummaryList,
   type SummaryResult,
+  type SyncUserResult,
   type UsageCurrent,
   type UsageDaily,
   type UserRole,
@@ -318,7 +319,7 @@ export function useSyncUser() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<ApiError | null>(null)
 
-  const sync = useCallback(async (): Promise<Member> => {
+  const sync = useCallback(async (): Promise<SyncUserResult> => {
     setLoading(true)
     setError(null)
     try {

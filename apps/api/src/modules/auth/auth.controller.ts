@@ -1,17 +1,17 @@
 import {
-  Body,
   Controller,
   HttpCode,
   HttpStatus,
   Post,
   Req,
   UnauthorizedException,
+  Body,
 } from '@nestjs/common';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { Webhook } from 'svix';
+import { createClerkClient } from '@clerk/backend';
 import type { Request } from 'express';
 import { AuthService } from './auth.service';
-import { SyncUserDto } from './dto/sync-user.dto';
 import { SkipTenant } from './skip-tenant.decorator';
 import { Public } from './public.decorator';
 
@@ -30,14 +30,21 @@ interface ClerkUserEvent {
 @ApiBearerAuth()
 @Controller('auth')
 export class AuthController {
+  private readonly clerk = createClerkClient({
+    secretKey: process.env.CLERK_SECRET_KEY!,
+  });
+
   constructor(private readonly authService: AuthService) {}
 
   @Post('sync')
   @SkipTenant()
   @HttpCode(HttpStatus.OK)
-  async sync(@Req() req: ClerkRequest, @Body() dto: SyncUserDto) {
+  async sync(@Req() req: ClerkRequest) {
     const clerkId = req.clerkPayload.sub;
-    return this.authService.syncUser(clerkId, dto.email);
+    const clerkUser = await this.clerk.users.getUser(clerkId);
+    const email =
+      clerkUser.emailAddresses?.[0]?.emailAddress ?? '';
+    return this.authService.syncUser(clerkId, email);
   }
 
   @Post('webhook')

@@ -154,15 +154,16 @@ export class MembersService {
         );
       }
 
-      await qr.query(
-        `UPDATE users SET org_id = $1, role = $2 WHERE id = $3`,
-        [invRow.org_id, invRow.role, userRow.id],
-      );
+      await qr.query(`UPDATE users SET org_id = $1, role = $2 WHERE id = $3`, [
+        invRow.org_id,
+        invRow.role,
+        userRow.id,
+      ]);
 
-      await qr.query(
-        `UPDATE invitations SET status = $1 WHERE id = $2`,
-        [InvitationStatus.ACCEPTED, invRow.id],
-      );
+      await qr.query(`UPDATE invitations SET status = $1 WHERE id = $2`, [
+        InvitationStatus.ACCEPTED,
+        invRow.id,
+      ]);
 
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const orgRows: Array<{ id: string; name: string; slug: string }> =

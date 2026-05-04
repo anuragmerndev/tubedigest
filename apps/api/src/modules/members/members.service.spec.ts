@@ -61,7 +61,12 @@ describe('MembersService', () => {
       userRepo.findOne.mockResolvedValue(owner);
       userRepo.find.mockResolvedValue([owner, member]);
 
-      const service = new MembersService(userRepo.repo, invRepo.repo, makeOrgRepo(), makeDataSource());
+      const service = new MembersService(
+        userRepo.repo,
+        invRepo.repo,
+        makeOrgRepo(),
+        makeDataSource(),
+      );
       const result = await service.listMembers('clerk_owner');
 
       expect(userRepo.find).toHaveBeenCalledWith({ where: { orgId: 'org1' } });
@@ -73,7 +78,12 @@ describe('MembersService', () => {
       const invRepo = makeInvitationRepo();
       userRepo.findOne.mockResolvedValue({ id: 'u1', orgId: null });
 
-      const service = new MembersService(userRepo.repo, invRepo.repo, makeOrgRepo(), makeDataSource());
+      const service = new MembersService(
+        userRepo.repo,
+        invRepo.repo,
+        makeOrgRepo(),
+        makeDataSource(),
+      );
       await expect(service.listMembers('clerk_owner')).rejects.toThrow(
         NotFoundException,
       );
@@ -86,7 +96,12 @@ describe('MembersService', () => {
       const invRepo = makeInvitationRepo();
       userRepo.findOne.mockResolvedValue(owner);
 
-      const service = new MembersService(userRepo.repo, invRepo.repo, makeOrgRepo(), makeDataSource());
+      const service = new MembersService(
+        userRepo.repo,
+        invRepo.repo,
+        makeOrgRepo(),
+        makeDataSource(),
+      );
       await expect(service.removeMember('clerk_owner', 'u1')).rejects.toThrow(
         ForbiddenException,
       );
@@ -100,7 +115,12 @@ describe('MembersService', () => {
         .mockResolvedValueOnce(member);
       userRepo.save.mockResolvedValue({ ...member, orgId: null });
 
-      const service = new MembersService(userRepo.repo, invRepo.repo, makeOrgRepo(), makeDataSource());
+      const service = new MembersService(
+        userRepo.repo,
+        invRepo.repo,
+        makeOrgRepo(),
+        makeDataSource(),
+      );
       await service.removeMember('clerk_owner', 'u2');
 
       expect(userRepo.save).toHaveBeenCalledWith({ ...member, orgId: null });
@@ -122,7 +142,12 @@ describe('MembersService', () => {
       invRepo.create.mockReturnValue(inv);
       invRepo.save.mockResolvedValue(inv);
 
-      const service = new MembersService(userRepo.repo, invRepo.repo, makeOrgRepo(), makeDataSource());
+      const service = new MembersService(
+        userRepo.repo,
+        invRepo.repo,
+        makeOrgRepo(),
+        makeDataSource(),
+      );
       const result = await service.inviteMember(
         'clerk_owner',
         'new@b.com',
@@ -150,7 +175,12 @@ describe('MembersService', () => {
       userRepo.findOne.mockResolvedValue(owner);
       invRepo.find.mockResolvedValue([inv]);
 
-      const service = new MembersService(userRepo.repo, invRepo.repo, makeOrgRepo(), makeDataSource());
+      const service = new MembersService(
+        userRepo.repo,
+        invRepo.repo,
+        makeOrgRepo(),
+        makeDataSource(),
+      );
       const result = await service.listInvitations('clerk_owner');
 
       expect(invRepo.find).toHaveBeenCalledWith({
@@ -176,7 +206,12 @@ describe('MembersService', () => {
         status: InvitationStatus.CANCELLED,
       });
 
-      const service = new MembersService(userRepo.repo, invRepo.repo, makeOrgRepo(), makeDataSource());
+      const service = new MembersService(
+        userRepo.repo,
+        invRepo.repo,
+        makeOrgRepo(),
+        makeDataSource(),
+      );
       await service.cancelInvitation('clerk_owner', 'inv1');
 
       expect(invRepo.save).toHaveBeenCalledWith({
@@ -191,7 +226,12 @@ describe('MembersService', () => {
       userRepo.findOne.mockResolvedValue(owner);
       invRepo.findOne.mockResolvedValue(null);
 
-      const service = new MembersService(userRepo.repo, invRepo.repo, makeOrgRepo(), makeDataSource());
+      const service = new MembersService(
+        userRepo.repo,
+        invRepo.repo,
+        makeOrgRepo(),
+        makeDataSource(),
+      );
       await expect(
         service.cancelInvitation('clerk_owner', 'inv-missing'),
       ).rejects.toThrow(NotFoundException);

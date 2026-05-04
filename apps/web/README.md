@@ -1,36 +1,99 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# TubeDigest Web
 
-## Getting Started
+Next.js frontend for TubeDigest. Provides the user-facing SaaS interface — authentication, onboarding, video summarization, dashboard, and workspace management.
 
-First, run the development server:
+## Tech Stack
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- **Framework:** Next.js 16 (App Router)
+- **UI:** Tailwind CSS 4 + custom shadcn-style components
+- **Auth:** Clerk (email/password + OAuth)
+- **Icons:** Lucide React
+- **Language:** TypeScript 5
+
+## Pages
+
+### Public
+| Route | Description |
+|-------|-------------|
+| `/` | Landing page with hero, features, and pricing |
+| `/sign-in` | Email/password sign-in |
+| `/sign-up` | Email/password sign-up with email verification |
+| `/sso-callback` | OAuth redirect handler |
+| `/onboarding` | 3-step workspace creation (name, use case, welcome) |
+
+### App (authenticated)
+| Route | Description |
+|-------|-------------|
+| `/dashboard` | Usage stats, daily usage chart, recent summaries |
+| `/summarize` | Paste YouTube URL, get AI summary |
+| `/history` | Paginated list of past summaries with search |
+| `/history/:id` | Full summary detail with video metadata |
+| `/settings` | Members, billing, and general workspace settings |
+
+## Project Structure
+
+```
+src/
+├── app/
+│   ├── (auth)/           # Sign-in, sign-up pages
+│   ├── (app)/            # Authenticated app pages
+│   ├── onboarding/       # Workspace setup flow
+│   └── sso-callback/     # OAuth handler
+├── components/
+│   ├── landing/          # Landing page sections + animations
+│   ├── layout/           # Shell, sidebar, topbar
+│   └── ui/               # Button, card, input, badge, avatar, charts
+├── hooks/                # API hooks (useOrg, useSummaries, etc.)
+└── lib/
+    ├── api.ts            # API client, types, error handling
+    └── utils.ts          # Tailwind class merging utility
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Components
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Layout
+- **Shell** — main app layout (sidebar + topbar + content)
+- **Sidebar** — navigation links, org branding, usage progress bar
+- **Topbar** — breadcrumbs, upgrade button, user menu
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### UI
+- **Button** — variants: default, secondary, ghost, destructive
+- **Card** — container with padding and border
+- **Input** — text input with optional icon
+- **Badge** — tones: primary, success, warn, neutral
+- **StatCard** — label, value, percentage progress
+- **UsageChart** — daily usage bar chart
+- **VideoThumb** — thumbnail with duration overlay
 
-## Learn More
+## Setup
 
-To learn more about Next.js, take a look at the following resources:
+1. Copy environment variables:
+   ```bash
+   cp .env.example .env.local
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+2. Start the dev server:
+   ```bash
+   pnpm dev
+   ```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+3. Open http://localhost:3000
 
-## Deploy on Vercel
+## Scripts
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+| Command | Description |
+|---------|-------------|
+| `pnpm dev` | Start dev server |
+| `pnpm build` | Build for production |
+| `pnpm lint` | Run ESLint |
+| `pnpm type-check` | TypeScript type checking |
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Environment Variables
+
+See `.env.example` for all required variables.
+
+| Variable | Description |
+|----------|-------------|
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk frontend key |
+| `NEXT_PUBLIC_API_URL` | Backend API base URL |
+| `NEXT_PUBLIC_APP_URL` | Frontend app URL |

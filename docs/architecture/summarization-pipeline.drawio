@@ -1,0 +1,101 @@
+<mxGraphModel adaptiveColors="auto" dx="1400" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="900">
+  <root>
+    <mxCell id="0"/>
+    <mxCell id="1" parent="0"/>
+    <mxCell id="title" value="Summarization Pipeline" style="text;html=1;fontSize=22;fontStyle=1;align=center;verticalAlign=middle;whiteSpace=wrap;fillColor=none;strokeColor=none;" vertex="1" parent="1">
+      <mxGeometry x="500" y="20" width="400" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="s1" value="User pastes&lt;br&gt;YouTube URL" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="80" y="100" width="150" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="s2" value="Validate URL&lt;br&gt;&lt;font style=&quot;font-size:10px;font-weight:normal&quot;&gt;Extract video ID&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="310" y="100" width="160" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="s3" value="Check video cache&lt;br&gt;&lt;font style=&quot;font-size:10px;font-weight:normal&quot;&gt;SELECT FROM videos&lt;br&gt;WHERE youtube_video_id = ?&lt;/font&gt;" style="shape=rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="540" y="75" width="240" height="110" as="geometry"/>
+    </mxCell>
+    <mxCell id="cache_hit" value="Cache Hit" style="text;html=1;fontSize=12;fontStyle=1;align=center;fillColor=none;strokeColor=none;fontColor=#82b366;" vertex="1" parent="1">
+      <mxGeometry x="790" y="85" width="80" height="20" as="geometry"/>
+    </mxCell>
+    <mxCell id="cache_miss" value="Cache Miss" style="text;html=1;fontSize=12;fontStyle=1;align=center;fillColor=none;strokeColor=none;fontColor=#b85450;" vertex="1" parent="1">
+      <mxGeometry x="610" y="195" width="100" height="20" as="geometry"/>
+    </mxCell>
+    <mxCell id="s4" value="Extract Transcript&lt;br&gt;&lt;font style=&quot;font-size:10px;font-weight:normal&quot;&gt;Apify YouTube&lt;br&gt;captions actor&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="310" y="260" width="170" height="70" as="geometry"/>
+    </mxCell>
+    <mxCell id="no_captions" value="No captions?&lt;br&gt;&lt;font style=&quot;font-size:10px;font-weight:normal&quot;&gt;422 Unprocessable&lt;br&gt;Usage NOT charged&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="80" y="265" width="160" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="s5" value="Truncate to&lt;br&gt;4000 tokens&lt;br&gt;&lt;font style=&quot;font-size:10px;font-weight:normal&quot;&gt;~20 min of video&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="560" y="260" width="150" height="70" as="geometry"/>
+    </mxCell>
+    <mxCell id="s6" value="OpenAI API&lt;br&gt;&lt;font style=&quot;font-size:10px;font-weight:normal&quot;&gt;GPT summarization&lt;br&gt;prompt + transcript&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="790" y="260" width="170" height="70" as="geometry"/>
+    </mxCell>
+    <mxCell id="s7" value="Store in videos table&lt;br&gt;&lt;font style=&quot;font-size:10px;font-weight:normal&quot;&gt;transcript + summary +&lt;br&gt;title, thumbnail, channel, duration&lt;/font&gt;" style="shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;fontStyle=1;size=10;" vertex="1" parent="1">
+      <mxGeometry x="790" y="400" width="200" height="90" as="geometry"/>
+    </mxCell>
+    <mxCell id="s8" value="Create user_summaries&lt;br&gt;record&lt;br&gt;&lt;font style=&quot;font-size:10px;font-weight:normal&quot;&gt;Links user + org + video&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="500" y="420" width="200" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="s9" value="Decrement&lt;br&gt;org credits&lt;br&gt;&lt;font style=&quot;font-size:10px;font-weight:normal&quot;&gt;Free: 10/mo&lt;br&gt;Pro: 100/mo&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="240" y="415" width="160" height="70" as="geometry"/>
+    </mxCell>
+    <mxCell id="s10" value="Return summary&lt;br&gt;to user" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="80" y="425" width="140" height="50" as="geometry"/>
+    </mxCell>
+    <mxCell id="skip_to_record" value="Reuse cached&lt;br&gt;summary" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;fontStyle=1;dashed=1;" vertex="1" parent="1">
+      <mxGeometry x="870" y="100" width="130" height="50" as="geometry"/>
+    </mxCell>
+    <mxCell id="e1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#6c8ebf;" edge="1" source="s1" target="s2" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="e2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#9673a6;" edge="1" source="s2" target="s3" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="e3_hit" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#82b366;" edge="1" source="s3" target="skip_to_record" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="e3_miss" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#b85450;" edge="1" source="s3" target="s4" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="660" y="230"/>
+          <mxPoint x="395" y="230"/>
+        </Array>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="e3b" value="No captions" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#b85450;dashed=1;fontSize=9;" edge="1" source="s4" target="no_captions" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="e4" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#9673a6;" edge="1" source="s4" target="s5" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="e5" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#d6b656;" edge="1" source="s5" target="s6" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="e6" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#82b366;" edge="1" source="s6" target="s7" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="e7" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#82b366;" edge="1" source="s7" target="s8" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="e7b" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#82b366;dashed=1;" edge="1" source="skip_to_record" target="s8" parent="1">
+      <mxGeometry relative="1" as="geometry">
+        <Array as="points">
+          <mxPoint x="1050" y="125"/>
+          <mxPoint x="1050" y="380"/>
+          <mxPoint x="600" y="380"/>
+        </Array>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="e8" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#82b366;" edge="1" source="s8" target="s9" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="e9" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#6c8ebf;" edge="1" source="s9" target="s10" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="trunc_note" value="truncated: true&lt;br&gt;if over 4000 tokens" style="text;html=1;fontSize=9;fontStyle=2;align=center;fillColor=none;strokeColor=none;fontColor=#9673a6;" vertex="1" parent="1">
+      <mxGeometry x="555" y="335" width="130" height="30" as="geometry"/>
+    </mxCell>
+  </root>
+</mxGraphModel>

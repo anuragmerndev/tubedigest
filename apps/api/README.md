@@ -1,98 +1,143 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# TubeDigest API
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+NestJS backend service for TubeDigest. Handles authentication, multi-tenant data isolation, YouTube video summarization, usage tracking, and billing.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Tech Stack
 
-## Description
+- **Framework:** NestJS
+- **Database:** PostgreSQL (Neon) + TypeORM
+- **Auth:** Clerk JWT verification
+- **Multi-tenancy:** Row-Level Security (RLS) via per-request `SET LOCAL`
+- **Billing:** Dodo Payments (subscriptions + webhooks)
+- **AI:** OpenAI API (summarization)
+- **Transcripts:** Apify (YouTube caption extraction)
+- **Logging:** Winston (structured JSON)
+- **API Docs:** Swagger/OpenAPI (dev only)
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## API Endpoints
 
-## Project setup
+### Auth & Onboarding
+| Method | Path | Description | Auth |
+|--------|------|-------------|------|
+| POST | `/api/auth/sync` | Sync Clerk user to local DB | Yes |
+| POST | `/api/auth/webhook` | Clerk webhook handler | Public (signature verified) |
+| POST | `/api/onboarding/org` | Create organization | Yes |
 
-```bash
-$ pnpm install
+### Organizations
+| Method | Path | Description | Auth |
+|--------|------|-------------|------|
+| GET | `/api/orgs/current` | Get current organization | Yes |
+| PATCH | `/api/orgs/current` | Update organization | Owner |
+
+### Members & Invitations
+| Method | Path | Description | Auth |
+|--------|------|-------------|------|
+| GET | `/api/members` | List org members | Yes |
+| DELETE | `/api/members/:id` | Remove member | Owner |
+| POST | `/api/invitations` | Invite member | Owner |
+| GET | `/api/invitations` | List pending invitations | Owner |
+| DELETE | `/api/invitations/:id` | Cancel invitation | Owner |
+
+### Summaries
+| Method | Path | Description | Auth |
+|--------|------|-------------|------|
+| POST | `/api/summaries` | Summarize a YouTube video | Yes (rate limited) |
+| GET | `/api/summaries` | List user's summaries (paginated) | Yes |
+| GET | `/api/summaries/:id` | Get single summary | Yes |
+
+### Billing
+| Method | Path | Description | Auth |
+|--------|------|-------------|------|
+| GET | `/api/billing/subscription` | Current subscription | Owner |
+| POST | `/api/billing/checkout` | Create checkout session | Owner |
+| POST | `/api/billing/portal` | Get billing portal URL | Owner |
+| POST | `/api/billing/webhook` | Dodo webhook handler | Public (signature verified) |
+
+### Usage
+| Method | Path | Description | Auth |
+|--------|------|-------------|------|
+| GET | `/api/usage/current` | Current period usage | Yes |
+| GET | `/api/usage/daily` | Daily usage for chart | Yes |
+
+## Project Structure
+
+```
+src/
+├── common/
+│   ├── filters/          # Global exception handler
+│   ├── guards/           # Rate limiting (per-user)
+│   ├── interceptors/     # Tenant context, response transform
+│   └── middleware/        # Request logging
+├── database/
+│   └── migrations/       # TypeORM migrations
+└── modules/
+    ├── auth/             # Clerk JWT verification, guards, decorators
+    ├── billing/          # Dodo Payments integration
+    ├── members/          # Member + invitation management
+    ├── onboarding/       # Org creation flow
+    ├── orgs/             # Organization CRUD
+    ├── summaries/        # YouTube summarization + transcript extraction
+    └── usage/            # Credit tracking + daily stats
 ```
 
-## Compile and run the project
+## Security
 
-```bash
-# development
-$ pnpm run start
+- **Global auth guard** — all endpoints require JWT unless marked `@Public()`
+- **RLS enforcement** — every request sets `app.org_id` on the DB connection
+- **Role guards** — owner-only endpoints enforced on backend
+- **Webhook verification** — Clerk (svix) and Dodo (standardwebhooks) signatures verified
+- **Rate limiting** — 100 req/min global, 10 req/min on summarizer
+- **Helmet** — security headers (CSP, HSTS, X-Frame-Options)
+- **Input validation** — `class-validator` DTOs on all request bodies
 
-# watch mode
-$ pnpm run start:dev
+## Setup
 
-# production mode
-$ pnpm run start:prod
-```
+1. Copy environment variables:
+   ```bash
+   cp .env.example .env
+   ```
 
-## Run tests
+2. Start the local database:
+   ```bash
+   docker compose up -d   # from repo root
+   ```
 
-```bash
-# unit tests
-$ pnpm run test
+3. Run migrations:
+   ```bash
+   pnpm migration:run
+   ```
 
-# e2e tests
-$ pnpm run test:e2e
+4. Start the dev server:
+   ```bash
+   pnpm dev
+   ```
 
-# test coverage
-$ pnpm run test:cov
-```
+5. Swagger docs available at `http://localhost:3001/api/docs` (dev only).
 
-## Deployment
+## Scripts
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+| Command | Description |
+|---------|-------------|
+| `pnpm dev` | Start dev server with hot reload |
+| `pnpm build` | Build for production |
+| `pnpm lint` | Lint and auto-fix |
+| `pnpm type-check` | TypeScript type checking |
+| `pnpm migration:generate` | Generate migration from entity changes |
+| `pnpm migration:run` | Run pending migrations |
+| `pnpm migration:revert` | Revert last migration |
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+## Environment Variables
 
-```bash
-$ pnpm install -g @nestjs/mau
-$ mau deploy
-```
+See `.env.example` for all required variables. Key ones:
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+| Variable | Description |
+|----------|-------------|
+| `DATABASE_URL` | PostgreSQL connection string |
+| `CLERK_SECRET_KEY` | Clerk backend secret |
+| `CLERK_PUBLISHABLE_KEY` | Clerk publishable key |
+| `DODO_API_KEY` | Dodo Payments API key |
+| `DODO_WEBHOOK_SECRET` | Dodo webhook signature secret |
+| `OPENAI_API_KEY` | OpenAI API key for summarization |
+| `APIFY_API_TOKEN` | Apify token for transcript extraction |
+| `FRONTEND_URL` | Frontend origin for CORS |
+| `PORT` | Server port (default: 3001) |

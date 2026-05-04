@@ -1,0 +1,84 @@
+<mxGraphModel adaptiveColors="auto" dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="900">
+  <root>
+    <mxCell id="0"/>
+    <mxCell id="1" parent="0"/>
+    <mxCell id="title" value="Auth + Multi-Tenancy Flow" style="text;html=1;fontSize=22;fontStyle=1;align=center;verticalAlign=middle;whiteSpace=wrap;fillColor=none;strokeColor=none;" vertex="1" parent="1">
+      <mxGeometry x="450" y="20" width="400" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="s1" value="1. User signs in&lt;br&gt;via Clerk" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="80" y="100" width="160" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="s2" value="2. Clerk issues JWT&lt;br&gt;&lt;font style=&quot;font-size:10px;font-weight:normal&quot;&gt;Contains: sub (user_id),&lt;br&gt;org_id, org_role&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="320" y="100" width="200" height="70" as="geometry"/>
+    </mxCell>
+    <mxCell id="s3" value="3. Frontend sends&lt;br&gt;Authorization: Bearer &amp;lt;JWT&amp;gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="600" y="100" width="220" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="s4" value="4. AuthGuard&lt;br&gt;&lt;font style=&quot;font-size:10px;font-weight:normal&quot;&gt;verifyToken() with&lt;br&gt;Clerk public key&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="900" y="100" width="180" height="70" as="geometry"/>
+    </mxCell>
+    <mxCell id="s5" value="5. TenantInterceptor&lt;br&gt;&lt;font style=&quot;font-size:10px;font-weight:normal&quot;&gt;Extracts org_id from&lt;br&gt;JWT payload&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="900" y="250" width="180" height="70" as="geometry"/>
+    </mxCell>
+    <mxCell id="s6" value="6. SET LOCAL app.org_id&lt;br&gt;&lt;font style=&quot;font-size:10px;font-weight:normal&quot;&gt;Runs on every DB connection&lt;br&gt;before any query executes&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="570" y="250" width="230" height="70" as="geometry"/>
+    </mxCell>
+    <mxCell id="s7" value="7. RLS Policies Enforce Isolation&lt;br&gt;&lt;font style=&quot;font-size:10px;font-weight:normal&quot;&gt;WHERE org_id = current_setting(&amp;apos;app.org_id&amp;apos;)&lt;br&gt;Applied automatically by Postgres&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=13;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="200" y="250" width="280" height="70" as="geometry"/>
+    </mxCell>
+    <mxCell id="rls_box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#b85450;dashed=1;strokeWidth=2;" vertex="1" parent="1">
+      <mxGeometry x="80" y="400" width="1020" height="200" as="geometry"/>
+    </mxCell>
+    <mxCell id="rls_title" value="RLS-Protected Tables" style="text;html=1;fontSize=14;fontStyle=1;align=left;verticalAlign=middle;fillColor=none;strokeColor=none;fontColor=#b85450;" vertex="1" parent="1">
+      <mxGeometry x="100" y="405" width="200" height="30" as="geometry"/>
+    </mxCell>
+    <mxCell id="t1" value="users&lt;br&gt;&lt;font style=&quot;font-size:9px&quot;&gt;org_id filtered&lt;/font&gt;" style="shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;fontStyle=1;size=10;" vertex="1" parent="1">
+      <mxGeometry x="100" y="450" width="120" height="70" as="geometry"/>
+    </mxCell>
+    <mxCell id="t2" value="invitations&lt;br&gt;&lt;font style=&quot;font-size:9px&quot;&gt;org_id filtered&lt;/font&gt;" style="shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;fontStyle=1;size=10;" vertex="1" parent="1">
+      <mxGeometry x="250" y="450" width="120" height="70" as="geometry"/>
+    </mxCell>
+    <mxCell id="t3" value="subscriptions&lt;br&gt;&lt;font style=&quot;font-size:9px&quot;&gt;org_id filtered&lt;/font&gt;" style="shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;fontStyle=1;size=10;" vertex="1" parent="1">
+      <mxGeometry x="400" y="450" width="130" height="70" as="geometry"/>
+    </mxCell>
+    <mxCell id="t4" value="usage_records&lt;br&gt;&lt;font style=&quot;font-size:9px&quot;&gt;org_id filtered&lt;/font&gt;" style="shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;fontStyle=1;size=10;" vertex="1" parent="1">
+      <mxGeometry x="560" y="450" width="130" height="70" as="geometry"/>
+    </mxCell>
+    <mxCell id="t5" value="user_summaries&lt;br&gt;&lt;font style=&quot;font-size:9px&quot;&gt;org_id filtered&lt;/font&gt;" style="shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;fontStyle=1;size=10;" vertex="1" parent="1">
+      <mxGeometry x="720" y="450" width="140" height="70" as="geometry"/>
+    </mxCell>
+    <mxCell id="t6" value="videos&lt;br&gt;&lt;font style=&quot;font-size:9px&quot;&gt;Shared cache&lt;br&gt;NO RLS&lt;/font&gt;" style="shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;fontStyle=1;size=10;" vertex="1" parent="1">
+      <mxGeometry x="890" y="450" width="120" height="70" as="geometry"/>
+    </mxCell>
+    <mxCell id="note_shared" value="Shared across all orgs" style="text;html=1;fontSize=10;fontStyle=2;align=center;verticalAlign=middle;fillColor=none;strokeColor=none;fontColor=#82b366;" vertex="1" parent="1">
+      <mxGeometry x="870" y="525" width="160" height="20" as="geometry"/>
+    </mxCell>
+    <mxCell id="e1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#6c8ebf;" edge="1" source="s1" target="s2" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="e2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#d6b656;" edge="1" source="s2" target="s3" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="e3" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#82b366;" edge="1" source="s3" target="s4" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="e4" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#9673a6;" edge="1" source="s4" target="s5" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="e5" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#9673a6;" edge="1" source="s5" target="s6" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="e6" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#b85450;" edge="1" source="s6" target="s7" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="e7" value="Queries go through RLS" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#b85450;dashed=1;fontSize=10;" edge="1" source="s7" target="rls_box" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="reject" value="401 Unauthorized" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="940" y="190" width="120" height="35" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_reject" value="Invalid token" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#b85450;dashed=1;fontSize=9;" edge="1" source="s4" target="reject" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+  </root>
+</mxGraphModel>

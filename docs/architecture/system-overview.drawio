@@ -1,0 +1,63 @@
+<mxGraphModel adaptiveColors="auto" dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="900">
+  <root>
+    <mxCell id="0"/>
+    <mxCell id="1" parent="0"/>
+    <mxCell id="title" value="TubeDigest — System Overview" style="text;html=1;fontSize=22;fontStyle=1;align=center;verticalAlign=middle;whiteSpace=wrap;fillColor=none;strokeColor=none;" vertex="1" parent="1">
+      <mxGeometry x="500" y="20" width="400" height="40" as="geometry"/>
+    </mxCell>
+    <mxCell id="user" value="User" style="shape=mxgraph.flowchart.terminator;rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="640" y="90" width="120" height="50" as="geometry"/>
+    </mxCell>
+    <mxCell id="clerk" value="Clerk&lt;br&gt;&lt;font style=&quot;font-size:10px;font-weight:normal&quot;&gt;Authentication&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="340" y="200" width="140" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="frontend" value="Next.js Frontend&lt;br&gt;&lt;font style=&quot;font-size:10px;font-weight:normal&quot;&gt;App Router + Tailwind + shadcn/ui&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="570" y="200" width="260" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="vercel" value="Vercel" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;fontColor=#333333;dashed=1;" vertex="1" parent="1">
+      <mxGeometry x="830" y="200" width="70" height="30" as="geometry"/>
+    </mxCell>
+    <mxCell id="backend" value="NestJS API&lt;br&gt;&lt;font style=&quot;font-size:10px;font-weight:normal&quot;&gt;REST + JWT Auth + RLS&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="570" y="360" width="260" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="render" value="Render" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=10;fontColor=#333333;dashed=1;" vertex="1" parent="1">
+      <mxGeometry x="830" y="360" width="70" height="30" as="geometry"/>
+    </mxCell>
+    <mxCell id="postgres" value="PostgreSQL&lt;br&gt;&lt;font style=&quot;font-size:10px;font-weight:normal&quot;&gt;Neon + RLS&lt;/font&gt;" style="shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=14;fontStyle=1;size=12;" vertex="1" parent="1">
+      <mxGeometry x="310" y="500" width="140" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="openai" value="OpenAI API&lt;br&gt;&lt;font style=&quot;font-size:10px;font-weight:normal&quot;&gt;Summarization&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="530" y="500" width="140" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="apify" value="Apify&lt;br&gt;&lt;font style=&quot;font-size:10px;font-weight:normal&quot;&gt;Transcript Extraction&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="730" y="500" width="140" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="dodo" value="Dodo Payments&lt;br&gt;&lt;font style=&quot;font-size:10px;font-weight:normal&quot;&gt;Subscriptions + Webhooks&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="930" y="500" width="160" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="e1" value="Sign in / Sign up" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=10;strokeColor=#6c8ebf;" edge="1" source="user" target="clerk" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="e2" value="JWT" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=10;strokeColor=#82b366;dashed=1;" edge="1" source="clerk" target="frontend" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="e3" value="Browse" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=10;strokeColor=#6c8ebf;" edge="1" source="user" target="frontend" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="e4" value="REST + Bearer Token" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=11;fontStyle=1;strokeColor=#9673a6;" edge="1" source="frontend" target="backend" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="e5" value="TypeORM + RLS" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=10;strokeColor=#b85450;" edge="1" source="backend" target="postgres" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="e6" value="Summarize" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=10;strokeColor=#d6b656;" edge="1" source="backend" target="openai" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="e7" value="Transcripts" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=10;strokeColor=#d6b656;" edge="1" source="backend" target="apify" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="e8" value="Checkout + Webhooks" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=10;strokeColor=#d6b656;" edge="1" source="backend" target="dodo" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+  </root>
+</mxGraphModel>

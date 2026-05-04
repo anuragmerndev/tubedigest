@@ -3,10 +3,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { MembersService } from './members.service';
 import { MembersController } from './members.controller';
 import { RolesGuard } from '../auth/roles.guard';
-import { User, Invitation } from '../../database/entities';
+import { User, Invitation, Organization } from '../../database/entities';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, Invitation])],
+  imports: [TypeOrmModule.forFeature([User, Invitation, Organization])],
   controllers: [MembersController],
   providers: [MembersService, RolesGuard],
 })

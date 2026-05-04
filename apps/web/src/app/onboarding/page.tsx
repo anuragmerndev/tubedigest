@@ -175,6 +175,25 @@ function VisualReady() {
   )
 }
 
+function VisualInvitationPreview({ orgName }: { orgName: string }) {
+  return (
+    <div className="absolute inset-0 flex items-center justify-center flex-col gap-6">
+      <div
+        className="w-[120px] h-[120px] rounded-[28px] grid place-items-center"
+        style={{
+          background: 'linear-gradient(135deg, #34D399, #059669)',
+          boxShadow: '0 20px 60px rgba(52,211,153,0.4), inset 0 0 0 1px rgba(255,255,255,0.1)',
+        }}
+      >
+        <Users size={50} className="text-white" />
+      </div>
+      <div className="font-mono-td text-[11px] text-primary tracking-[0.1em]">
+        JOIN {orgName.toUpperCase()}
+      </div>
+    </div>
+  )
+}
+
 // ─── Steps ────────────────────────────────────────────────────────────────────
 
 const USE_CASES = [
@@ -262,6 +281,82 @@ function StepCreateWorkspace({
   )
 }
 
+function StepJoinWorkspace({
+  invitation,
+  onAccept,
+  onDecline,
+  loading,
+  error,
+}: {
+  invitation: { id: string; orgName: string; orgSlug: string; role: string }
+  onAccept: () => void
+  onDecline: () => void
+  loading: boolean
+  error: string
+}) {
+  return (
+    <div>
+      <h1 className="text-[32px] tracking-[-0.025em] font-semibold mb-2.5">
+        You&apos;ve been invited!
+      </h1>
+      <p className="text-[14px] text-td-text-muted mb-7 leading-relaxed">
+        You&apos;ve been invited to join{' '}
+        <span className="text-foreground font-medium">{invitation.orgName}</span>{' '}
+        as a <span className="text-foreground font-medium">{invitation.role}</span>.
+      </p>
+
+      <div className="p-4 rounded-xl border border-border bg-card mb-6">
+        <div className="flex items-center gap-3">
+          <div
+            className="w-11 h-11 rounded-[10px] grid place-items-center text-white text-[17px] font-semibold shrink-0"
+            style={{ background: 'linear-gradient(135deg, #F59E0B, #EF4444)' }}
+          >
+            {invitation.orgName
+              .split(' ')
+              .map((w) => w[0])
+              .slice(0, 2)
+              .join('')
+              .toUpperCase()}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-[15px] font-medium truncate">{invitation.orgName}</div>
+            <div className="font-mono-td text-[12px] text-td-text-dim truncate">
+              tubedigest.com/<span className="text-primary">{invitation.orgSlug}</span>
+            </div>
+          </div>
+          <Badge tone="primary">{invitation.role}</Badge>
+        </div>
+      </div>
+
+      {error && (
+        <div className="mb-4 text-destructive text-[12.5px] bg-destructive/10 px-3 py-2 rounded-lg border border-destructive/20">
+          {error}
+        </div>
+      )}
+
+      <button
+        type="button"
+        onClick={onAccept}
+        disabled={loading}
+        className={cn(
+          buttonVariants({ size: 'lg' }),
+          'w-full justify-center gap-2 disabled:opacity-50',
+        )}
+      >
+        {loading ? 'Joining…' : 'Join workspace'} {!loading && <ArrowRight size={13} />}
+      </button>
+
+      <button
+        type="button"
+        onClick={onDecline}
+        className="w-full text-center text-[12.5px] text-td-text-muted hover:text-foreground mt-3 transition-colors"
+      >
+        Create your own workspace instead
+      </button>
+    </div>
+  )
+}
+
 function StepWelcome({ orgName, router }: { orgName: string; router: ReturnType<typeof useRouter> }) {
   const tasks = [
     { done: true, n: '1', title: 'Workspace created', desc: `${orgName || 'My Workspace'} · Free plan` },
@@ -337,17 +432,61 @@ function StepWelcome({ orgName, router }: { orgName: string; router: ReturnType<
 export default function OnboardingPage() {
   const { getToken } = useAuth()
   const router = useRouter()
-  const [step, setStep] = useState(1) // start at step 1 (workspace), step 0 = account already done
+  const [step, setStep] = useState(1)
   const [orgName, setOrgName] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [invitation, setInvitation] = useState<{
+    id: string
+    orgName: string
+    orgSlug: string
+    role: string
+  } | null>(null)
+  const [showInvitation, setShowInvitation] = useState(false)
 
-  // Sync Clerk user to our DB on mount
+  // Sync Clerk user to our DB on mount — check for invitation
   useEffect(() => {
-    getToken().then((token) => {
-      if (token) api.syncUser(token).catch(() => {})
+    getToken().then(async (token) => {
+      if (!token) return
+      try {
+        const result = await api.syncUser(token)
+        // If user already has an org, skip onboarding entirely
+        if (result.orgId) {
+          router.replace('/dashboard')
+          return
+        }
+        // If there's a pending invitation, show join screen
+        if (result.invitation) {
+          setInvitation(result.invitation)
+          setShowInvitation(true)
+        }
+      } catch {
+        // syncUser failed — continue with normal onboarding
+      }
     })
-  }, [getToken])
+  }, [getToken, router])
+
+  async function handleAcceptInvitation() {
+    if (!invitation) return
+    setLoading(true)
+    setError('')
+    try {
+      const token = await getToken()
+      if (!token) throw new Error('Not authenticated')
+      await api.acceptInvitation(token, invitation.id)
+      router.replace('/dashboard')
+    } catch (e: unknown) {
+      const err = e as { message?: string }
+      setError(err.message ?? 'Failed to join workspace. Please try again.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  function handleDeclineInvitation() {
+    setShowInvitation(false)
+    setInvitation(null)
+  }
 
   async function handleCreateOrg() {
     if (!orgName.trim()) return
@@ -366,14 +505,25 @@ export default function OnboardingPage() {
     }
   }
 
-  const visuals: Record<number, React.ReactNode> = {
+  const visuals: Record<string, React.ReactNode> = {
+    invitation: <VisualInvitationPreview orgName={invitation?.orgName ?? ''} />,
     1: <VisualWorkspacePreview orgName={orgName} />,
     2: <VisualReady />,
   }
 
+  const activeVisual = showInvitation ? 'invitation' : String(step)
+
   return (
-    <OnboardingShell step={step} visual={visuals[step] ?? <VisualTestimonial />}>
-      {step === 1 && (
+    <OnboardingShell step={showInvitation ? 1 : step} visual={visuals[activeVisual] ?? <VisualTestimonial />}>
+      {showInvitation && invitation ? (
+        <StepJoinWorkspace
+          invitation={invitation}
+          onAccept={handleAcceptInvitation}
+          onDecline={handleDeclineInvitation}
+          loading={loading}
+          error={error}
+        />
+      ) : step === 1 ? (
         <StepCreateWorkspace
           orgName={orgName}
           onOrgNameChange={setOrgName}
@@ -381,8 +531,9 @@ export default function OnboardingPage() {
           loading={loading}
           error={error}
         />
+      ) : (
+        <StepWelcome orgName={orgName} router={router} />
       )}
-      {step === 2 && <StepWelcome orgName={orgName} router={router} />}
     </OnboardingShell>
   )
 }

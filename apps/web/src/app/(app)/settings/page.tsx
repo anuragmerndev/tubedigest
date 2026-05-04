@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useUser } from '@clerk/nextjs'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -349,12 +350,16 @@ function UsageMeter({ label, value, limit, pct }: {
 }
 
 function BillingTab() {
+  const { user } = useUser()
+  const { data: members } = useMembers()
   const { data: org } = useOrg()
   const { data: usage } = useUsageCurrent()
   const { data: subscription } = useSubscription()
   const { openPortal, loading: portalLoading } = useBillingPortal()
   const { checkout, loading: checkoutLoading } = useBillingCheckout()
 
+  const currentMember = members?.find((m) => m.clerkId === user?.id)
+  const isOwner = currentMember?.role === 'owner'
   const isPro = org?.plan === 'pro'
   const count = usage?.count ?? 0
   const limit = usage?.limit ?? 500
@@ -427,7 +432,7 @@ function BillingTab() {
       </Card>
 
       {/* Upgrade CTA */}
-      {!isPro && (
+      {!isPro && isOwner && (
         <Card padding={22}>
           <div className="flex items-center gap-4">
             <div

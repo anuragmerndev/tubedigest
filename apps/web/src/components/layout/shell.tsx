@@ -10,6 +10,7 @@ interface ShellProps {
   usageCount?: number
   usageLimit?: number
   userName?: string
+  userRole?: string
 }
 
 export function Shell({
@@ -21,6 +22,7 @@ export function Shell({
   usageCount,
   usageLimit,
   userName,
+  userRole,
 }: ShellProps) {
   return (
     <div className="flex h-full min-h-0">
@@ -31,7 +33,7 @@ export function Shell({
         usageLimit={usageLimit}
       />
       <div className="flex-1 flex flex-col min-w-0">
-        <Topbar crumbs={topbarCrumbs} actions={topbarActions} userName={userName} orgPlan={orgPlan} />
+        <Topbar crumbs={topbarCrumbs} actions={topbarActions} userName={userName} orgPlan={orgPlan} userRole={userRole} />
         <main className="flex-1 overflow-y-auto td-scroll">{children}</main>
       </div>
     </div>

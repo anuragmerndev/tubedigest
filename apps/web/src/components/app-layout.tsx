@@ -9,6 +9,7 @@ interface AppLayoutProps {
   usageCount?: number
   usageLimit?: number
   userName?: string
+  userRole?: string
   children: React.ReactNode
 }
 
@@ -27,6 +28,7 @@ export function AppLayout({
   usageCount,
   usageLimit,
   userName,
+  userRole,
   children,
 }: AppLayoutProps) {
   const pathname = usePathname()
@@ -40,6 +42,7 @@ export function AppLayout({
       usageCount={usageCount}
       usageLimit={usageLimit}
       userName={userName}
+      userRole={userRole}
     >
       {children}
     </Shell>

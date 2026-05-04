@@ -11,11 +11,13 @@ export default async function AppRootLayout({ children }: { children: React.Reac
   let orgPlan: string | undefined
   let usageCount: number | undefined
   let usageLimit: number | undefined
+  let userRole: string | undefined
 
   if (token) {
-    const [orgResult, usageResult] = await Promise.allSettled([
+    const [orgResult, usageResult, syncResult] = await Promise.allSettled([
       api.getOrg(token),
       api.getUsageCurrent(token),
+      api.syncUser(token),
     ])
     if (orgResult.status === 'fulfilled') {
       orgName = orgResult.value.name
@@ -24,6 +26,9 @@ export default async function AppRootLayout({ children }: { children: React.Reac
     if (usageResult.status === 'fulfilled') {
       usageCount = usageResult.value.count
       usageLimit = usageResult.value.limit
+    }
+    if (syncResult.status === 'fulfilled') {
+      userRole = syncResult.value.role ?? undefined
     }
   }
 
@@ -36,6 +41,7 @@ export default async function AppRootLayout({ children }: { children: React.Reac
       usageCount={usageCount}
       usageLimit={usageLimit}
       userName={userName}
+      userRole={userRole}
     >
       {children}
     </AppLayout>

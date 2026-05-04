@@ -42,8 +42,7 @@ export class AuthController {
   async sync(@Req() req: ClerkRequest) {
     const clerkId = req.clerkPayload.sub;
     const clerkUser = await this.clerk.users.getUser(clerkId);
-    const email =
-      clerkUser.emailAddresses?.[0]?.emailAddress ?? '';
+    const email = clerkUser.emailAddresses?.[0]?.emailAddress ?? '';
     return this.authService.syncUser(clerkId, email);
   }
 

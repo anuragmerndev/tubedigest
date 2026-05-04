@@ -37,14 +37,7 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async sync(@Req() req: ClerkRequest, @Body() dto: SyncUserDto) {
     const clerkId = req.clerkPayload.sub;
-    const user = await this.authService.syncUser(clerkId, dto.email);
-    return {
-      id: user.id,
-      clerkId: user.clerkId,
-      email: user.email,
-      role: user.role,
-      orgId: user.orgId,
-    };
+    return this.authService.syncUser(clerkId, dto.email);
   }
 
   @Post('webhook')
